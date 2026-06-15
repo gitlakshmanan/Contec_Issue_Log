@@ -1,0 +1,74 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Pending Approval - Issue Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card text-center">
+            <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                <h4 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Account Pending Approval
+                </h4>
+            </div>
+            <div class="card-body py-5">
+                <div class="mb-4">
+                    <i class="fas fa-user-clock fa-4x text-warning mb-3"></i>
+                    <h3 class="text-warning">Your Account is Pending Approval</h3>
+                </div>
+                
+                <p class="lead mb-4">
+                    Thank you for registering! Your account has been created and is currently pending approval from an administrator.
+                </p>
+                
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-info-circle me-2"></i>What happens next?</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-check text-success me-2"></i>An administrator will review your account</li>
+                        <li><i class="fas fa-check text-success me-2"></i>You will receive access to the system once approved</li>
+                        <li><i class="fas fa-check text-success me-2"></i>You can check back here for updates</li>
+                    </ul>
+                </div>
+                
+                {% if profile %}
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-user me-2"></i>Account Information
+                                </h6>
+                                <p class="card-text">
+                                    <strong>Username:</strong> {{ user.username }}<br>
+                                    <strong>Email:</strong> {{ user.email }}<br>
+                                    <strong>Registered:</strong> {{ profile.created_at|date:"M d, Y H:i" }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-clock me-2"></i>Status
+                                </h6>
+                                <p class="card-text">
+                                    <span class="badge bg-warning fs-6">{{ profile.get_status_display }}</span><br>
+                                    <small class="text-muted">Waiting for admin approval</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="mt-4">
+                    <a href="{% url 'logout' %}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

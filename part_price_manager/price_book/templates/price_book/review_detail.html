@@ -1,0 +1,53 @@
+
+{% extends 'pricebook/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Review Part Price</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h5>Part Details</h5>
+                    <table class="table table-bordered">
+                        <tr><th>Part Number:</th><td>{{ part.partnumber }}</td></tr>
+                        <tr><th>Customer:</th><td>{{ part.customer.name }}</td></tr>
+                        <tr><th>Price:</th><td>${{ part.price }}</td></tr>
+                        <tr><th>Margin:</th><td>{{ part.margin }}%</td></tr>
+                        <tr><th>Created By:</th><td>{{ part.created_by.username }}</td></tr>
+                        <tr><th>Created Date:</th><td>{{ part.created_date|date:"Y-m-d H:i" }}</td></tr>
+                        <tr><th>Remarks:</th><td>{{ part.remarks }}</td></tr>
+                    </table>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="comments" class="form-label">Review Comments</label>
+                        <textarea class="form-control" id="comments" name="comments" rows="3" 
+                                  placeholder="Enter your review comments..."></textarea>
+                    </div>
+                    
+                    {{ form|crispy }}
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-warning" name="action" value="reviewed">
+                            <i class="fas fa-check-circle me-1"></i>Mark as Reviewed
+                        </button>
+                        <button type="submit" class="btn btn-danger" name="action" value="rejected">
+                            <i class="fas fa-times-circle me-1"></i>Reject
+                        </button>
+                        <a href="{% url 'review_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 fw-bold text-warning">
+        <i class="fas fa-draft2digital me-2"></i>My Draft Parts
+    </h1>
+    <a href="{% url 'part_list' %}" class="btn btn-light btn-sm">
+        <i class="fas fa-arrow-left me-1"></i>Back to Parts
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Draft Parts ({{ page_obj.paginator.count }} total)</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Part Number</th>
+                            <th>Customer</th>
+                            <th>Price</th>
+                            <th>Start Date</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for part in page_obj %}
+                        <tr>
+                            <td><strong>{{ part.partnumber }}</strong></td>
+                            <td>{{ part.customer.name }}</td>
+                            <td>${{ part.price }}</td>
+                            <td>{{ part.startdate|date:"M d, Y" }}</td>
+                            <td>{{ part.created_date|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'part_detail' part.pk %}" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'part_submit' part.pk %}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-paper-plane"></i> Submit
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No draft parts found</h5>
+                <p class="text-muted">Upload a CSV file to see your draft parts here.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

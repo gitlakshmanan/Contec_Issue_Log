@@ -1,0 +1,680 @@
+{% extends 'base/base.html' %}
+
+{% block title %}
+    {% if object %}Edit Issue #{{ object.id }}{% else %}Create New Issue{% endif %} - Issue Management System
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-6 fw-bold" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <i class="fas fa-{% if object %}edit{% else %}plus{% endif %} me-3"></i>
+        {% if object %}Edit Issue IssueId {{ object.id }}{% else %}Create New Issue{% endif %}
+        {% if object and object.department %}
+            <small class="text-muted ms-3">Department: {{ object.department }}</small>
+        {% elif request.user.is_authenticated and request.user.profile.department %}
+            <small class="text-muted ms-3">Department: {{ request.user.profile.department }}</small>
+        {% endif %}
+    </h1>
+    <a href="{% url 'issues' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Issues
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8 mx-auto">
+        <!-- Tips Section (top block above the form) -->
+        {% if not object %}
+        <div id="tipsCard" class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Tips & Information
+                    </h6>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="form-check form-check-inline me-2 mb-0">
+                        <input class="form-check-input" type="checkbox" id="dontShowCheckbox">
+                        <label class="form-check-label small text-muted" for="dontShowCheckbox">Don't show this again</label>
+                    </div>
+                    <button id="toggleTipsBtn" class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#tipsBody" aria-expanded="true" aria-controls="tipsBody">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="tipsBody" class="collapse show">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-primary"><i class="fas fa-lightbulb me-2"></i>Best Practices:</h6>
+                            <ul class="mb-2 small">
+                                <li><i class="fas fa-check text-success me-1"></i><strong>Description:</strong> Start with impact summary, include invoice/transaction references</li>
+                                <li><i class="fas fa-check text-success me-1"></i><strong>Root Cause:</strong> Be specific - identify the exact system, process, or human error</li>
+                                <li><i class="fas fa-check text-success me-1"></i><strong>Revenue Impact:</strong> Estimate actual dollar amount affected (helps prioritization)</li>
+                                <li><i class="fas fa-check text-success me-1"></i><strong>Due Date:</strong> Set realistic timeline based on issue complexity</li>
+                                <li><i class="fas fa-check text-success me-1"></i><strong>Attachments:</strong> Include screenshots, invoices, or error logs when available</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-warning"><i class="fas fa-info-circle me-2"></i>Field Guidelines:</h6>
+                            <div class="small">
+                                <p class="mb-2"><strong>Required Fields:</strong> Customer, Invoice Type, Issue Category, Description, Root Cause, Identified On/By, Due Date, Status</p>
+                                <p class="mb-2"><strong>Date Format:</strong> Use MM/DD/YYYY format (e.g., 12/25/2024)</p>
+                                <p class="mb-2"><strong>Issue Category:</strong> Type to create new categories or select existing ones</p>
+                                <p class="mb-2"><strong>Impact Category:</strong> Choose based on business impact level</p>
+                                <p class="mb-0"><strong>File Upload:</strong> Max 5MB - PDF, DOCX, XLSX, JPG, PNG, GIF supported</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info py-2 mb-0">
+                                <small><i class="fas fa-clock me-1"></i><strong>Quick Tip:</strong> Use Tab key to navigate between fields quickly. All required fields are marked with an asterisk (*)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="mb-0">
+                    <i class="fas fa-{% if object %}edit{% else %}plus{% endif %} me-2"></i>
+                    {% if object %}Edit Issue Details{% else %}New Issue Information{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <h6 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Please correct the following errors:</h6>
+                    <ul class="mb-0">
+                        {% for field in form %}
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endif %}
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+                
+                <form method="post" enctype="multipart/form-data" id="issueForm">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Basic Information
+                            </h6>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.customer.id_for_label }}" class="form-label">
+                                <i class="fas fa-building me-1"></i>Customer *
+                            </label>
+                            {{ form.customer }}
+                            {% if form.customer.errors %}
+                                <div class="text-danger small">{{ form.customer.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.inv_type.id_for_label }}" class="form-label">
+                                <i class="fas fa-file-invoice me-1"></i>Invoice Type *
+                            </label>
+                            {{ form.inv_type }}
+                            {% if form.inv_type.errors %}
+                                <div class="text-danger small">{{ form.inv_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.issue_cat.id_for_label }}" class="form-label">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Issue Category *
+                            </label>
+                            {{ form.issue_cat }}
+                            {% if form.issue_cat.errors %}
+                                <div class="text-danger small">{{ form.issue_cat.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.department.id_for_label }}" class="form-label">
+                                <i class="fas fa-building me-1"></i>Department
+                            </label>
+                            {{ form.department }}
+                            {% if form.department.errors %}
+                                <div class="text-danger small">{{ form.department.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.location.id_for_label }}" class="form-label">
+                                <i class="fas fa-map-marker-alt me-1"></i>Location
+                            </label>
+                            {{ form.location }}
+                            {% if form.location.errors %}
+                                <div class="text-danger small">{{ form.location.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Issue Details -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-bug me-2"></i>Issue Details
+                            </h6>
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label" style="font-size: 0.85rem;">
+                                <i class="fas fa-align-left me-1"></i>Description *
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.root_cause.id_for_label }}" class="form-label" style="font-size: 1.1rem; font-weight: 600;">
+                                <i class="fas fa-search me-1"></i>Root Cause *
+                            </label>
+                            {{ form.root_cause }}
+                            {% if form.root_cause.errors %}
+                                <div class="text-danger small">{{ form.root_cause.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.root_cause_owner.id_for_label }}" class="form-label">
+                                <i class="fas fa-user-tie me-1"></i>Root Cause Owner *
+                            </label>
+                            {{ form.root_cause_owner }}
+                            {% if form.root_cause_owner.errors %}
+                                <div class="text-danger small">{{ form.root_cause_owner.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Identification -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-calendar-alt me-2"></i>Identification
+                            </h6>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.identified_on.id_for_label }}" class="form-label">
+                                <i class="fas fa-calendar me-1"></i>Identified On *
+                            </label>
+                            {{ form.identified_on }}
+                            {% if form.identified_on.errors %}
+                                <div class="text-danger small">{{ form.identified_on.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.identified_by.id_for_label }}" class="form-label">
+                                <i class="fas fa-user me-1"></i>Identified By *
+                            </label>
+                            {{ form.identified_by }}
+                            {% if form.identified_by.errors %}
+                                <div class="text-danger small">{{ form.identified_by.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.due_date.id_for_label }}" class="form-label">
+                                <i class="fas fa-clock me-1"></i>Due Date *
+                            </label>
+                            {{ form.due_date }}
+                            {% if form.due_date.errors %}
+                                <div class="text-danger small">{{ form.due_date.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.action_owner.id_for_label }}" class="form-label">
+                                <i class="fas fa-user-check me-1"></i>Action Owner
+                            </label>
+                            {{ form.action_owner }}
+                            {% if form.action_owner.errors %}
+                                <div class="text-danger small">{{ form.action_owner.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Financial Impact -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-dollar-sign me-2"></i>Financial Impact
+                            </h6>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.revenue_impact.id_for_label }}" class="form-label">
+                                <i class="fas fa-money-bill-wave me-1"></i>Revenue Impact ($)
+                            </label>
+                            {{ form.revenue_impact }}
+                            {% if form.revenue_impact.errors %}
+                                <div class="text-danger small">{{ form.revenue_impact.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.impact_category.id_for_label }}" class="form-label">
+                                <i class="fas fa-chart-line me-1"></i>Impact Category
+                            </label>
+                            {{ form.impact_category }}
+                            {% if form.impact_category.errors %}
+                                <div class="text-danger small">{{ form.impact_category.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Customer Impact -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-users me-2"></i>Customer Impact
+                            </h6>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.customer_received.id_for_label }}" class="form-label">
+                                <i class="fas fa-check-circle me-1"></i>Customer Received Invoice
+                            </label>
+                            {{ form.customer_received }}
+                            {% if form.customer_received.errors %}
+                                <div class="text-danger small">{{ form.customer_received.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.impacted_customer.id_for_label }}" class="form-label">
+                                <i class="fas fa-user-friends me-1"></i>Impacted Customer
+                            </label>
+                            {{ form.impacted_customer }}
+                            {% if form.impacted_customer.errors %}
+                                <div class="text-danger small">{{ form.impacted_customer.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-tools me-2"></i>Actions
+                            </h6>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.containment_action.id_for_label }}" class="form-label">
+                                <i class="fas fa-shield-alt me-1"></i>Containment Action
+                            </label>
+                            {{ form.containment_action }}
+                            {% if form.containment_action.errors %}
+                                <div class="text-danger small">{{ form.containment_action.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.corrective_action.id_for_label }}" class="form-label">
+                                <i class="fas fa-wrench me-1"></i>Corrective Action
+                            </label>
+                            {{ form.corrective_action }}
+                            {% if form.corrective_action.errors %}
+                                <div class="text-danger small">{{ form.corrective_action.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.rebilled_credited.id_for_label }}" class="form-label">
+                                <i class="fas fa-receipt me-1"></i>Rebilled/Credited
+                            </label>
+                            {{ form.rebilled_credited }}
+                            {% if form.rebilled_credited.errors %}
+                                <div class="text-danger small">{{ form.rebilled_credited.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">
+                                <i class="fas fa-flag me-1"></i>Status *
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="text-danger small">{{ form.status.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.rebill_proof.id_for_label }}" class="form-label">
+                                <i class="fas fa-file-invoice-dollar me-1"></i>Rebill/Credit Proof
+                            </label>
+                            {{ form.rebill_proof }}
+                            {% if form.rebill_proof.errors %}
+                                <div class="text-danger small">{{ form.rebill_proof.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.approved.id_for_label }}" class="form-label">
+                                <i class="fas fa-user-check me-1"></i>Approved By
+                            </label>
+                            {{ form.approved }}
+                            {% if form.approved.errors %}
+                                <div class="text-danger small">{{ form.approved.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-sticky-note me-2"></i>Additional Information
+                            </h6>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.remarks.id_for_label }}" class="form-label">
+                                <i class="fas fa-comment me-1"></i>Remarks
+                            </label>
+                            {{ form.remarks }}
+                            {% if form.remarks.errors %}
+                                <div class="text-danger small">{{ form.remarks.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.attachment.id_for_label }}" class="form-label">
+                                <i class="fas fa-paperclip me-1"></i>Attachment
+                            </label>
+                            <div class="file-upload-wrapper">
+                                {{ form.attachment }}
+                                <button type="button" class="file-upload-btn" onclick="document.getElementById('{{ form.attachment.id_for_label }}').click()">
+                                    <i class="fas fa-cloud-upload-alt me-2"></i>Choose File
+                                </button>
+                                <span class="file-name" id="fileName">No file selected</span>
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Upload documents (.pdf, .docx, .xlsx) or images (.jpg, .png, .gif). Max size: 10MB
+                            </div>
+                            {% if form.attachment.errors %}
+                                <div class="text-danger small">{{ form.attachment.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'issues' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success" data-original-text="Save Issue">
+                            <i class="fas fa-save me-2"></i>Save Issue
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.file-upload-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.file-upload-wrapper input[type="file"] {
+    display: none;
+}
+
+.file-upload-btn {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    border: none;
+    display: inline-block;
+}
+
+.file-upload-btn:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.file-name {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.file-name.has-file {
+    color: #065f46;
+    font-weight: 500;
+    font-style: normal;
+}
+
+/* Fix checkbox visibility */
+.form-check-input {
+    background-color: #fff;
+    border: 2px solid #0d6efd;
+    width: 1.2em;
+    height: 1.2em;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.form-check-input:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Make all form controls have blue borders */
+.form-control, .form-select {
+    border: 1px solid #0d6efd;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    console.log('Issue form JavaScript loaded');
+    
+    // Set initial minimum date for due date (handled below in MM/DD/YYYY format)
+    
+    // Set minimum date for due date to be identified date
+        // Use MM/DD/YYYY date-only inputs. Set defaults and enforce due_date >= identified_on.
+        function formatDateMMDDYYYY(d) {
+            var mm = String(d.getMonth() + 1).padStart(2, '0');
+            var dd = String(d.getDate()).padStart(2, '0');
+            var yy = String(d.getFullYear());
+            return mm + '/' + dd + '/' + yy;
+        }
+    
+        var today = new Date();
+    
+        // Set default values if empty (create mode)
+        if (!$('#id_identified_on').val()) {
+            $('#id_identified_on').val(formatDateMMDDYYYY(today));
+        }
+    
+        if (!$('#id_due_date').val()) {
+            var dueDefault = new Date(today);
+            dueDefault.setDate(dueDefault.getDate() + 7);
+            $('#id_due_date').val(formatDateMMDDYYYY(dueDefault));
+        }
+    
+        // When identified_on changes, ensure due_date is at least that date
+        $('#id_identified_on').on('change', function() {
+            var identifiedDateStr = $(this).val();
+            if (!identifiedDateStr) return;
+            // Parse MM/DD/YYYY or ISO fallback
+            var parts = identifiedDateStr.split('/');
+            var identifiedDate = null;
+            if (parts.length === 3) {
+                identifiedDate = new Date(parts[2], parseInt(parts[0], 10) - 1, parts[1]);
+            } else {
+                identifiedDate = new Date(identifiedDateStr);
+            }
+        
+            if (identifiedDate && !isNaN(identifiedDate.getTime())) {
+                var dueVal = $('#id_due_date').val();
+                var dueDate = null;
+                if (dueVal) {
+                    var dparts = dueVal.split('/');
+                    if (dparts.length === 3) {
+                        dueDate = new Date(dparts[2], parseInt(dparts[0], 10) - 1, dparts[1]);
+                    } else {
+                        dueDate = new Date(dueVal);
+                    }
+                }
+            
+                if (!dueDate || dueDate < identifiedDate) {
+                    var newDue = new Date(identifiedDate);
+                    newDue.setDate(newDue.getDate() + 7);
+                    $('#id_due_date').val(formatDateMMDDYYYY(newDue));
+                }
+            }
+        });
+
+    // Trigger change on page load to set due date
+    $('#id_identified_on').trigger('change');
+
+    // Simplified form validation - let Django handle most validation
+    $('#issueForm').on('submit', function(e) {
+        console.log('Form submitted');
+        console.log('Identified On:', $('#id_identified_on').val());
+        console.log('Due Date:', $('#id_due_date').val());
+        
+        // Just log the submission, don't prevent it
+        // Django will handle validation on the backend
+        return true;
+    });
+
+    // Remove validation classes on input
+    $('input, select, textarea').on('input change', function() {
+        $(this).removeClass('is-invalid');
+    });
+    
+    // Add visual feedback for invalid fields
+    $('input, select, textarea').on('blur', function() {
+        if ($(this).attr('required') && !$(this).val()) {
+            $(this).addClass('is-invalid');
+        }
+    });
+    
+    // File upload functionality
+    $('input[type="file"]').on('change', function() {
+        var fileName = $(this)[0].files.length > 0 ? $(this)[0].files[0].name : 'No file selected';
+        var fileNameSpan = $('#fileName');
+        
+        fileNameSpan.text(fileName);
+        
+        if ($(this)[0].files.length > 0) {
+            fileNameSpan.addClass('has-file');
+            
+            // Validate file size (10MB)
+            var file = $(this)[0].files[0];
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size cannot exceed 10MB. Please choose a smaller file.');
+                $(this).val('');
+                fileNameSpan.text('No file selected').removeClass('has-file');
+                return;
+            }
+            
+            // Validate file type
+            var allowedTypes = ['pdf', 'docx', 'xlsx', 'jpg', 'jpeg', 'png', 'gif'];
+            var fileExtension = file.name.split('.').pop().toLowerCase();
+            if (allowedTypes.indexOf(fileExtension) === -1) {
+                alert('File type not allowed. Please upload PDF, DOCX, XLSX, JPG, PNG, or GIF files.');
+                $(this).val('');
+                fileNameSpan.text('No file selected').removeClass('has-file');
+                return;
+            }
+        } else {
+            fileNameSpan.removeClass('has-file');
+        }
+    });
+    
+    // Initialize file name if file already exists (edit mode)
+    var fileInput = $('input[type="file"]');
+    if (fileInput.length) {
+        // Check if there's an existing attachment URL (edit mode)
+        var existingAttachment = fileInput.closest('.col-md-6').find('a[href*="attachment"]');
+        if (existingAttachment.length) {
+            var existingFileName = existingAttachment.text() || 'Existing file';
+            $('#fileName').text(existingFileName).addClass('has-file');
+        }
+    }
+
+    // Tips card controls: toggle and dismiss
+    var tipsBodyEl = document.getElementById('tipsBody');
+    var toggleBtn = document.getElementById('toggleTipsBtn');
+    var dontShowCheckbox = document.getElementById('dontShowCheckbox');
+
+    function postToggle(show) {
+        // send POST to save preference
+        fetch('{% url "toggle-tips" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'show_tips=' + (show ? '1' : '0')
+        }).then(function(resp){
+            return resp.json();
+        }).then(function(data){
+            if (data.status !== 'success') console.warn('Failed to save preference', data);
+        }).catch(function(err){
+            console.warn('Error saving preference', err);
+        });
+    }
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            // Determine new state after bootstrap toggles collapse
+            setTimeout(function(){
+                var isShown = tipsBodyEl.classList.contains('show');
+                // update icon
+                var icon = toggleBtn.querySelector('i');
+                if (isShown) {
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                } else {
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                }
+                // Do not persist collapse state; only the dismiss preference is persisted
+            }, 250);
+        });
+    }
+    if (dontShowCheckbox) {
+        dontShowCheckbox.addEventListener('change', function() {
+            var checked = dontShowCheckbox.checked;
+            if (checked) {
+                // hide the tips card immediately
+                var tipsCard = document.getElementById('tipsCard');
+                if (tipsCard) tipsCard.remove();
+            }
+            // persist preference (show_tips = !checked)
+            postToggle(!checked);
+        });
+    }
+});
+</script>
+{% endblock %}

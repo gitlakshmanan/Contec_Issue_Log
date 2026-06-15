@@ -1,0 +1,264 @@
+{% extends 'base/main.html' %}
+{% block title %}{% if form.instance.pk %}Edit Task{% else %}Create New Task{% endif %} - Modern To-Do List{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+    }
+    
+    .form-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .form-header h2 {
+        color: #667eea;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .form-header p {
+        color: #6c757d;
+        margin: 0;
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1rem;
+    }
+    
+    .form-group input[type="text"],
+    .form-group textarea {
+        width: 100%;
+        padding: 15px 20px;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        border-radius: 15px;
+        font-size: 1rem;
+        font-weight: 500;
+        background: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .form-group input[type="text"]:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+    }
+    
+    .form-group textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+    
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px 20px;
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 15px;
+        border: 2px solid rgba(102, 126, 234, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .checkbox-group:hover {
+        background: rgba(102, 126, 234, 0.08);
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: #667eea;
+    }
+    
+    .checkbox-group label {
+        margin: 0;
+        font-weight: 500;
+        color: #667eea;
+        cursor: pointer;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        min-width: 120px;
+    }
+    
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-cancel {
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        border: 2px solid rgba(108, 117, 125, 0.2);
+        padding: 13px 30px;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        min-width: 120px;
+    }
+    
+    .btn-cancel:hover {
+        background: rgba(108, 117, 125, 0.2);
+        color: #495057;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="header-bar">
+    <div class="header-content">
+        <h1>
+            <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus{% endif %} me-2"></i>
+            {% if form.instance.pk %}Edit Task{% else %}Create New Task{% endif %}
+        </h1>
+        <h3>{% if form.instance.pk %}Update your task details{% else %}Add a new task to your list{% endif %}</h3>
+    </div>
+    <div>
+        <a href="{% url 'tasks' %}">
+            <i class="fas fa-arrow-left me-2"></i>Back to Tasks
+        </a>
+    </div>
+</div>
+
+<!-- Form Section -->
+<div class="form-container">
+    <div class="form-header">
+        <h2>
+            <i class="fas fa-{% if form.instance.pk %}edit{% else %}clipboard-list{% endif %} me-2"></i>
+            {% if form.instance.pk %}Edit "{{ form.instance.title }}"{% else %}What needs to be done?{% endif %}
+        </h2>
+        <p>{% if form.instance.pk %}Make changes to your task{% else %}Fill in the details for your new task{% endif %}</p>
+    </div>
+    
+    <form method="POST" action="" id="taskForm">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {% if field.field.widget.input_type == 'checkbox' %}
+                    <div class="checkbox-group">
+                        {{ field }}
+                        <label for="{{ field.id_for_label }}">Mark as completed</label>
+                    </div>
+                {% else %}
+                    {{ field }}
+                {% endif %}
+                
+                {% if field.errors %}
+                    <div class="field-errors">
+                        {% for error in field.errors %}
+                            <small style="color: #e74c3c; font-weight: 500;">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-{% if form.instance.pk %}save{% else %}plus{% endif %} me-2"></i>
+                {% if form.instance.pk %}Update Task{% else %}Create Task{% endif %}
+            </button>
+            <a href="{% url 'tasks' %}" class="btn-cancel">
+                <i class="fas fa-times me-2"></i>Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-focus the first input field
+        const firstInput = document.querySelector('#taskForm input[type="text"], #taskForm textarea');
+        if (firstInput) {
+            firstInput.focus();
+        }
+        
+        // Add form validation
+        const form = document.getElementById('taskForm');
+        const submitBtn = document.querySelector('.btn-submit');
+        
+        form.addEventListener('submit', function(e) {
+            // Add loading state
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+            submitBtn.disabled = true;
+        });
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + Enter to submit
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                form.submit();
+            }
+            
+            // Escape to cancel
+            if (e.key === 'Escape') {
+                window.location.href = "{% url 'tasks' %}";
+            }
+        });
+        
+        // Add character counter for title field
+        const titleField = document.querySelector('input[name="title"]');
+        if (titleField) {
+            const maxLength = titleField.getAttribute('maxlength') || 200;
+            const counter = document.createElement('small');
+            counter.style.color = '#6c757d';
+            counter.style.float = 'right';
+            counter.style.marginTop = '5px';
+            
+            function updateCounter() {
+                const remaining = maxLength - titleField.value.length;
+                counter.textContent = `${titleField.value.length}/${maxLength} characters`;
+                counter.style.color = remaining < 20 ? '#e74c3c' : '#6c757d';
+            }
+            
+            titleField.addEventListener('input', updateCounter);
+            titleField.parentNode.appendChild(counter);
+            updateCounter();
+        }
+    });
+</script>
+{% endblock %}

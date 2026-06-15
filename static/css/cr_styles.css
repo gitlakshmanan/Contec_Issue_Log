@@ -1,0 +1,23 @@
+.form-label {
+    border: 2px solid #3498db;
+    border-radius: 4px;
+    padding: 5px 10px;
+    display: inline-block;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-weight: 600;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.form-label:hover {
+    border-color: #2980b9;
+    background-color: #e9ecef;
+}
+
+/* Style for required field labels */
+.form-label.required::after {
+    content: "*";
+    color: #e74c3c;
+    margin-left: 4px;
+}

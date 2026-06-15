@@ -1,0 +1,246 @@
+
+{% extends 'pricebook/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-{% if title == 'Add New Part Price' %}plus-circle{% else %}edit{% endif %} me-2"></i>{{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" id="partForm">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.customer|as_crispy_field }}
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                                    <i class="fas fa-plus me-1"></i>Add New Customer
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.partnumber|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            {{ form.price|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.margin|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.startdate|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.po_number|as_crispy_field }}
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addPOModal">
+                                    <i class="fas fa-plus me-1"></i>Add New PO Number
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.so_number|as_crispy_field }}
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addSOModal">
+                                    <i class="fas fa-plus me-1"></i>Add New SO Number
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.enddate|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.remarks|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Save Part Price
+                        </button>
+                        <a href="{% url 'part_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Customer Modal -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="newCustomerName" class="form-label">Customer Name</label>
+                    <input type="text" class="form-control" id="newCustomerName" placeholder="Enter customer name">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addNewCustomer()">Add Customer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add PO Modal -->
+<div class="modal fade" id="addPOModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New PO Number</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="newPONumber" class="form-label">PO Number</label>
+                    <input type="text" class="form-control" id="newPONumber" placeholder="Enter PO number">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addNewPO()">Add PO Number</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add SO Modal -->
+<div class="modal fade" id="addSOModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New SO Number</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="newSONumber" class="form-label">SO Number</label>
+                    <input type="text" class="form-control" id="newSONumber" placeholder="Enter SO number">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addNewSO()">Add SO Number</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function addNewCustomer() {
+        const name = $('#newCustomerName').val();
+        if (name) {
+            $.ajax({
+                url: '{% url "create_customer_ajax" %}',
+                type: 'POST',
+                data: {
+                    'name': name,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function(data) {
+                    // Add new option to select
+                    const select = $('#id_customer');
+                    select.append(new Option(data.name, data.id));
+                    select.val(data.id);
+                    
+                    // Close modal and reset input
+                    $('#addCustomerModal').modal('hide');
+                    $('#newCustomerName').val('');
+                    
+                    // Show success message
+                    alert('Customer added successfully!');
+                },
+                error: function() {
+                    alert('Error adding customer');
+                }
+            });
+        }
+    }
+    
+    function addNewPO() {
+        const poNumber = $('#newPONumber').val();
+        if (poNumber) {
+            $.ajax({
+                url: '{% url "create_po_ajax" %}',
+                type: 'POST',
+                data: {
+                    'po_number': poNumber,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function(data) {
+                    // Add new option to select
+                    const select = $('#id_po_number');
+                    select.append(new Option(data.po_number, data.id));
+                    select.val(data.id);
+                    
+                    // Close modal and reset input
+                    $('#addPOModal').modal('hide');
+                    $('#newPONumber').val('');
+                    
+                    // Show success message
+                    alert('PO Number added successfully!');
+                },
+                error: function() {
+                    alert('Error adding PO Number');
+                }
+            });
+        }
+    }
+    
+    function addNewSO() {
+        const soNumber = $('#newSONumber').val();
+        if (soNumber) {
+            $.ajax({
+                url: '{% url "create_so_ajax" %}',
+                type: 'POST',
+                data: {
+                    'so_number': soNumber,
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function(data) {
+                    // Add new option to select
+                    const select = $('#id_so_number');
+                    select.append(new Option(data.so_number, data.id));
+                    select.val(data.id);
+                    
+                    // Close modal and reset input
+                    $('#addSOModal').modal('hide');
+                    $('#newSONumber').val('');
+                    
+                    // Show success message
+                    alert('SO Number added successfully!');
+                },
+                error: function() {
+                    alert('Error adding SO Number');
+                }
+            });
+        }
+    }
+</script>
+{% endblock %}

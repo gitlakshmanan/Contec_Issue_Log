@@ -1,0 +1,260 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Closed Issues - Issue Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-6 fw-bold" style="background: linear-gradient(135deg, #42136e 0%, #082d4b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <i class="fas fa-check-circle me-3"></i>Closed Issues
+    </h1>
+    <div>
+        <a href="{% url 'issues' %}" class="btn btn-primary me-2">
+            <i class="fas fa-list me-2"></i>All Issues
+        </a>
+        <a href="{% url 'issue-create' %}" class="btn btn-success">
+            <i class="fas fa-plus me-2"></i>New Issue
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #30145e 0%, #47d3b9 75%); color: rgb(36, 10, 131);">
+            <div class="stat-number">{{ total_closed_issues }}</div>
+            <div class="stat-label">Total Closed Issues</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 75%); color: rgb(45, 11, 77);">
+            <div class="stat-number">${{ total_revenue_impact|default:0|floatformat:2 }}</div>
+            <div class="stat-label">Total Revenue Impact (Closed)</div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter Form -->
+<div class="search-container">
+    <form method="get" class="row g-3">
+        <div class="col-md-4">
+            <label for="search" class="form-label">Search</label>
+            <input type="text" class="form-control" id="search" name="search" 
+                   value="{{ request.GET.search }}" placeholder="Search closed issues...">
+        </div>
+        <div class="col-md-2">
+            <label for="customer" class="form-label">Customer</label>
+            {{ search_form.customer }}
+        </div>
+        <div class="col-md-2">
+            <label for="inv_type" class="form-label">Invoice Type</label>
+            {{ search_form.inv_type }}
+        </div>
+        <div class="col-md-2">
+            <label for="issue_cat" class="form-label">Issue Category</label>
+            {{ search_form.issue_cat }}
+        </div>
+        <div class="col-md-2">
+            <label for="sort_by" class="form-label">Sort By</label>
+            <select name="sort_by" class="form-control">
+                <option value="-closed_at" {% if request.GET.sort_by == '-closed_at' %}selected{% endif %}>Recently Closed</option>
+                <option value="closed_at" {% if request.GET.sort_by == 'closed_at' %}selected{% endif %}>Oldest Closed</option>
+                <option value="customer" {% if request.GET.sort_by == 'customer' %}selected{% endif %}>Customer (A-Z)</option>
+                <option value="-customer" {% if request.GET.sort_by == '-customer' %}selected{% endif %}>Customer (Z-A)</option>
+                <option value="revenue_impact" {% if request.GET.sort_by == 'revenue_impact' %}selected{% endif %}>Revenue Impact (Low-High)</option>
+                <option value="-revenue_impact" {% if request.GET.sort_by == '-revenue_impact' %}selected{% endif %}>Revenue Impact (High-Low)</option>
+            </select>
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary me-2">
+                <i class="fas fa-search me-2"></i>Search
+            </button>
+            <a href="{% url 'export-issues' %}?status=Closed{% if request.GET %}&amp;{{ request.GET.urlencode }}{% endif %}" class="btn btn-info me-2" title="Export only closed issues (respects filters)">
+                <i class="fas fa-download me-2"></i>Export Closed Issues
+            </a>
+            <a href="{% url 'closed-issues' %}" class="btn btn-secondary">
+                <i class="fas fa-times me-2"></i>Clear
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Closed Issues Table -->
+<div class="card">
+    <div class="card-header" style="background: linear-gradient(135deg, #9fe0e0 0%, #def1ee 100%); color: rgb(49, 131, 124);">
+        <h5 class="mb-0">
+            <i class="fas fa-check-circle me-2"></i>Closed Issues Archive
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Inv Type</th>
+                        <th>Issue Cat</th>
+                        <th>Description</th>
+                        <th>Closed Date</th>
+                        <th>Closed By</th>
+                        <th>Revenue Impact</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in issues %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-success">#{{ issue.id }}</span>
+                        </td>
+                        <td>
+                            <span class="fw-bold">{{ issue.customer }}</span>
+                        </td>
+                        <td>{{ issue.inv_type }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ issue.issue_cat_name|default:issue.issue_cat.name }}</span>
+                        </td>
+                        <td>
+                            <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {{ issue.description|truncatechars:50 }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="text-success fw-bold">
+                                {{ issue.closed_at|date:"M d, Y H:i"|default:"N/A" }}
+                            </span>
+                        </td>
+                        <td>{{ issue.updated_by.username|default:"System" }}</td>
+                        <td>
+                            {% if issue.revenue_impact %}
+                                <span class="text-success fw-bold">${{ issue.revenue_impact|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="text-muted">$0.00</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'issue-detail' issue.pk %}" 
+                                   class="btn btn-sm btn-outline-primary" 
+                                   data-bs-toggle="tooltip" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'issue-update' issue.pk %}" 
+                                   class="btn btn-sm btn-outline-warning" 
+                                   data-bs-toggle="tooltip" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'reopen-issue' issue.pk %}?next={{ request.get_full_path }}" 
+                                   class="btn btn-sm btn-outline-success" 
+                                   data-bs-toggle="tooltip" title="Reopen Issue"
+                                   onclick="return confirm('Are you sure you want to reopen this issue?')">
+                                    <i class="fas fa-undo"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                                <h5>No closed issues found</h5>
+                                <p>There are no closed issues matching your search criteria.</p>
+                                <a href="{% url 'issues' %}" class="btn btn-primary">
+                                    <i class="fas fa-list me-2"></i>View All Issues
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Closed issues pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page=1">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<!-- Success Rate Chart -->
+{% if customer_stats %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Closed Issues by Customer
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for stat in customer_stats %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="fw-bold">{{ stat.customer__name }}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="progress me-2" style="width: 200px; height: 10px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: {% widthratio stat.count total_closed_issues 100 %}%"></div>
+                        </div>
+                        <span class="badge bg-success">{{ stat.count }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

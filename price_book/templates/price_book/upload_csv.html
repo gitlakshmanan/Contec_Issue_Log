@@ -1,0 +1,115 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="mb-0">
+                    <i class="fas fa-upload me-2"></i>Upload CSV File
+                </h1>
+                <a href="{% url 'part_list' %}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Parts
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Upload Parts Price Book CSV</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.csv_file.id_for_label }}" class="form-label">
+                                {{ form.csv_file.label }}
+                            </label>
+                            {{ form.csv_file }}
+                            {% if form.csv_file.help_text %}
+                                <div class="form-text">{{ form.csv_file.help_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>CSV Format Requirements:</h6>
+                            <p class="mb-2">Your CSV file should have the following columns (header row required):</p>
+                            <ul class="mb-2">
+                                <li><strong>customer</strong> - Customer name (required)</li>
+                                <li><strong>partnumber</strong> - Part number (required)</li>
+                                <li><strong>price</strong> - Price amount (required)</li>
+                                <li><strong>startdate</strong> - Start date in YYYY-MM-DD format (required)</li>
+                                <li><strong>enddate</strong> - End date in YYYY-MM-DD format (optional)</li>
+                                <li><strong>margin</strong> - Margin percentage (optional, default: 0)</li>
+                                <li><strong>po_number</strong> - PO Number (optional)</li>
+                                <li><strong>so_number</strong> - SO Number (optional)</li>
+                                <li><strong>remarks</strong> - Additional remarks (optional)</li>
+                            </ul>
+                            <p class="mb-0"><strong>Note:</strong> All imported parts will be created with "Draft" status and require approval.</p>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'part_list' %}" class="btn btn-light">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-2"></i>Upload CSV
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
+        border-radius: 0.75rem;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem 0.75rem 0 0 !important;
+    }
+    
+    .form-control {
+        padding: 0.6rem 1rem;
+        border: 2px solid #3498db;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 4px rgba(52, 152, 219, 0.1);
+    }
+    
+    .form-control:focus {
+        border-color: #2980b9;
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        outline: none;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.75rem;
+    }
+    
+    .btn {
+        padding: 0.6rem 1.2rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+    }
+    
+    .gap-2 {
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}

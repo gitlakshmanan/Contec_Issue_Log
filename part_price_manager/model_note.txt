@@ -1,0 +1,93 @@
+
+
+parts_price_manager/
+├── manage.py
+├── parts_price_manager/
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── pricebook/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── views.py
+│   ├── urls.py
+│   ├── forms.py
+│   ├── migrations/
+│   └── templates/
+│       └── pricebook/
+│           ├── base.html
+│           ├── part_list.html
+│           ├── part_detail.html
+│           ├── part_form.html
+│           ├── approval_list.html
+│           └── approval_detail.html
+└── requirements.txt
+
+Django==4.2.7
+django-crispy-forms==2.0
+crispy-bootstrap5==0.7
+psycopg2-binary==2.9.7
+python-dateutil==2.8.2
+
+
+
+
+Key Features Implemented:
+Complete CRUD Operations: Create, Read, Update, Delete with proper permissions
+
+Double-click Functionality: Double-click any row to view complete details in a modal
+
+Search Bars in Headers: Each column has its own search input field
+
+Approval Workflow: Strict hierarchy - Creator → Reviewer → Approver
+
+AJAX Operations: Smooth UI with AJAX for customer/PO/SO creation
+
+Bootstrap 5 UI: Modern, responsive interface
+
+Export Functionality: Export table data to CSV
+
+Status Management: Clear visual status indicators
+
+Foreign Table Support: Customer, PO Number, SO Number as separate tables
+
+Audit Trail: Complete logging of all actions
+
+
+
+
+
+
+
+
+
+
+
+
+
+The following parts price are in the Revenue database and tdi_pricebook table.
+
+contec_serial   primary, auto increment
+customer	varchar ( 50) create foreign table because customer may be added more, 
+partnumber	varchar (100), not null
+price		float (with 2 decimas), not null
+startdate	yyyy/mm/dd part introducing date
+enddate		open until closed
+margin		% of price calculation by default 0, create a label logic  on the column header
+PO_Number	varchar, create foreign table because each time new PO number may arrive, null value accepted
+SO_Number	varchar, create foreign table because each time new SO number arrive, null value accepted
+CreateDate	The date when creatin / adding part number and price, not null
+Remarks 	Text, 
+
+
+Application Requirement:
+
+Need a comprehensive parts price table with the above columns and edit button for CRUD operation with bi-directional and double click action for adding price on the table and also can open a pop-up window screen with complete columns of a row with all above columns, in addition, CRUD operations label button and back button.
+
+While open this application only search label in the page, when user input partnumber, it should display the part number along with other relevant details.
+If user want to add any new part price, it should open a  new screen associated with comprehensive table columns.   Also, after adding any parts and price, that should be submitted to Reviewer approval and Reviewer will forward to Approval Authority for approval.  Strictly maintain this hierarchy, after getting the approval from  these persons only the new part and price should be added in the comprehensive table.
+
+DeepSeek may use his best application development methods and technical views, but need the project in the Django Project with html, css, js and bootstrap 

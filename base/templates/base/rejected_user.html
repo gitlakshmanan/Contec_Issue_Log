@@ -1,0 +1,79 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Account Rejected - Issue Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card text-center">
+            <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                <h4 class="mb-0">
+                    <i class="fas fa-times-circle me-2"></i>Account Access Denied
+                </h4>
+            </div>
+            <div class="card-body py-5">
+                <div class="mb-4">
+                    <i class="fas fa-user-times fa-4x text-danger mb-3"></i>
+                    <h3 class="text-danger">Your Account Has Been Rejected</h3>
+                </div>
+                
+                <p class="lead mb-4">
+                    Unfortunately, your account registration has been rejected by an administrator.
+                </p>
+                
+                {% if profile.rejection_reason %}
+                <div class="alert alert-danger">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Reason for Rejection</h5>
+                    <p class="mb-0">{{ profile.rejection_reason }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-info-circle me-2"></i>What can you do?</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-phone text-primary me-2"></i>Contact your administrator for more information</li>
+                        <li><i class="fas fa-envelope text-primary me-2"></i>Request a review of your application</li>
+                        <li><i class="fas fa-question-circle text-primary me-2"></i>Ask about alternative access methods</li>
+                    </ul>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-user me-2"></i>Account Information
+                                </h6>
+                                <p class="card-text">
+                                    <strong>Username:</strong> {{ user.username }}<br>
+                                    <strong>Email:</strong> {{ user.email }}<br>
+                                    <strong>Rejected:</strong> {{ profile.updated_at|date:"M d, Y H:i" }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-times-circle me-2"></i>Status
+                                </h6>
+                                <p class="card-text">
+                                    <span class="badge bg-danger fs-6">{{ profile.get_status_display }}</span><br>
+                                    <small class="text-muted">Account access denied</small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="{% url 'logout' %}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

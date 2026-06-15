@@ -1,0 +1,224 @@
+{% extends 'base/base.html' %}
+
+{% block title %}My Profile - Issue Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-6 fw-bold" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <i class="fas fa-user me-3"></i>My Profile
+    </h1>
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-edit me-2"></i>Profile Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="profileForm">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Basic Information
+                            </h6>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.department.id_for_label }}" class="form-label">
+                                <i class="fas fa-building me-1"></i>Department
+                            </label>
+                            {{ form.department }}
+                            {% if form.department.errors %}
+                                <div class="text-danger small">{{ form.department.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">
+                                <i class="fas fa-phone me-1"></i>Phone Number
+                            </label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                                <div class="text-danger small">{{ form.phone_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-2"></i>Update Profile
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Profile Summary -->
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-user me-2"></i>Profile Summary
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-user-circle fa-4x text-primary"></i>
+                </div>
+                <p class="mb-1"><strong>Username:</strong> {{ user.username }}</p>
+                <p class="mb-1"><strong>Email:</strong> {{ user.email }}</p>
+                {% if user.first_name or user.last_name %}
+                    <p class="mb-1"><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                {% endif %}
+                <p class="mb-1"><strong>Status:</strong> 
+                    {% if profile.status == 'approved' %}
+                        <span class="badge bg-success">{{ profile.get_status_display }}</span>
+                    {% elif profile.status == 'pending' %}
+                        <span class="badge bg-warning">{{ profile.get_status_display }}</span>
+                    {% elif profile.status == 'rejected' %}
+                        <span class="badge bg-danger">{{ profile.get_status_display }}</span>
+                    {% elif profile.status == 'suspended' %}
+                        <span class="badge bg-secondary">{{ profile.get_status_display }}</span>
+                    {% endif %}
+                </p>
+                <p class="mb-1"><strong>Member Since:</strong> {{ user.date_joined|date:"M d, Y" }}</p>
+                <p class="mb-1"><strong>Last Login:</strong> {{ user.last_login|date:"M d, Y H:i"|default:"Never" }}</p>
+                {% if profile.department %}
+                    <p class="mb-1"><strong>Department:</strong> {{ profile.department }}</p>
+                {% endif %}
+                {% if profile.phone_number %}
+                    <p class="mb-1"><strong>Phone:</strong> {{ profile.phone_number }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Account Status -->
+        {% if profile.status == 'approved' %}
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-check-circle me-2"></i>Account Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h5 class="text-success">Account Active</h5>
+                    <p class="text-muted mb-0">Your account has been approved and you have full access to the system.</p>
+                </div>
+                {% if profile.approved_by %}
+                    <hr>
+                    <p class="mb-1"><strong>Approved By:</strong> {{ profile.approved_by.username }}</p>
+                    <p class="mb-0"><strong>Approved On:</strong> {{ profile.approved_at|date:"M d, Y H:i" }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% elif profile.status == 'pending' %}
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Account Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                    <h5 class="text-warning">Pending Approval</h5>
+                    <p class="text-muted mb-0">Your account is waiting for administrator approval.</p>
+                </div>
+            </div>
+        </div>
+        {% elif profile.status == 'rejected' %}
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-times-circle me-2"></i>Account Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <i class="fas fa-times-circle fa-3x text-danger mb-3"></i>
+                    <h5 class="text-danger">Account Rejected</h5>
+                    <p class="text-muted mb-0">Your account has been rejected by an administrator.</p>
+                </div>
+                {% if profile.rejection_reason %}
+                    <hr>
+                    <p class="mb-1"><strong>Reason:</strong></p>
+                    <p class="text-danger">{{ profile.rejection_reason }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if profile.status == 'approved' %}
+                        <a href="{% url 'issues' %}" class="btn btn-primary">
+                            <i class="fas fa-list me-2"></i>View Issues
+                        </a>
+                        <a href="{% url 'issue-create' %}" class="btn btn-success">
+                            <i class="fas fa-plus me-2"></i>Create Issue
+                        </a>
+                        <a href="{% url 'dashboard' %}" class="btn btn-info">
+                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" class="btn btn-secondary">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Form validation
+    $('#profileForm').on('submit', function(e) {
+        var isValid = true;
+        
+        // Check required fields
+        $('[required]').each(function() {
+            if (!$(this).val().trim()) {
+                $(this).addClass('is-invalid');
+                isValid = false;
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields correctly.');
+        }
+    });
+
+    // Remove validation classes on input
+    $('input, select, textarea').on('input change', function() {
+        $(this).removeClass('is-invalid');
+    });
+});
+</script>
+{% endblock %}

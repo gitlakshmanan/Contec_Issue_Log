@@ -1,0 +1,337 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Approve User: {{ profile.user.username }} - Issue Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-4 fw-bold" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <i class="fas fa-user-check me-3"></i>Review User: {{ profile.user.username }}
+    </h1>
+    <a href="{% url 'user-management' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Users
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-edit me-2"></i>User Approval Form
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="approvalForm">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Approval Status
+                            </h6>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">
+                                <i class="fas fa-flag me-1"></i>Status *
+                            </label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="text-danger small">{{ form.status.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.department.id_for_label }}" class="form-label">
+                                <i class="fas fa-building me-1"></i>Department
+                            </label>
+                            {{ form.department }}
+                            {% if form.department.errors %}
+                                <div class="text-danger small">{{ form.department.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-user me-2"></i>User Information
+                            </h6>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.phone_number.id_for_label }}" class="form-label">
+                                <i class="fas fa-phone me-1"></i>Phone Number
+                            </label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                                <div class="text-danger small">{{ form.phone_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-sticky-note me-2"></i>Additional Information
+                            </h6>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                <i class="fas fa-comment me-1"></i>Admin Notes
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="text-danger small">{{ form.notes.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 mb-3" id="rejectionReasonField" style="display: none;">
+                            <label for="{{ form.rejection_reason.id_for_label }}" class="form-label">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Rejection Reason *
+                            </label>
+                            {{ form.rejection_reason }}
+                            {% if form.rejection_reason.errors %}
+                                <div class="text-danger small">{{ form.rejection_reason.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="fas fa-key me-2"></i>Menu Access Permissions
+                            </h6>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                {{ form.can_access_issues }}
+                                <label for="{{ form.can_access_issues.id_for_label }}" class="form-check-label">
+                                    {{ form.can_access_issues.label }}
+                                </label>
+                                {% if form.can_access_issues.help_text %}
+                                    <small class="form-text text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>{{ form.can_access_issues.help_text }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                {{ form.can_access_tasks }}
+                                <label for="{{ form.can_access_tasks.id_for_label }}" class="form-check-label">
+                                    {{ form.can_access_tasks.label }}
+                                </label>
+                                {% if form.can_access_tasks.help_text %}
+                                    <small class="form-text text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>{{ form.can_access_tasks.help_text }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                {{ form.can_access_parts }}
+                                <label for="{{ form.can_access_parts.id_for_label }}" class="form-check-label">
+                                    {{ form.can_access_parts.label }}
+                                </label>
+                                {% if form.can_access_parts.help_text %}
+                                    <small class="form-text text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>{{ form.can_access_parts.help_text }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                {{ form.can_access_cr }}
+                                <label for="{{ form.can_access_cr.id_for_label }}" class="form-check-label">
+                                    {{ form.can_access_cr.label }}
+                                </label>
+                                {% if form.can_access_cr.help_text %}
+                                    <small class="form-text text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>{{ form.can_access_cr.help_text }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                {{ form.can_access_reports }}
+                                <label for="{{ form.can_access_reports.id_for_label }}" class="form-check-label">
+                                    {{ form.can_access_reports.label }}
+                                </label>
+                                {% if form.can_access_reports.help_text %}
+                                    <small class="form-text text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>{{ form.can_access_reports.help_text }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                {{ form.can_access_approvals }}
+                                <label for="{{ form.can_access_approvals.id_for_label }}" class="form-check-label">
+                                    {{ form.can_access_approvals.label }}
+                                </label>
+                                {% if form.can_access_approvals.help_text %}
+                                    <small class="form-text text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>{{ form.can_access_approvals.help_text }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'user-management' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Update User Status
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+{{ ... }}
+        <!-- User Information -->
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-user me-2"></i>User Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-user-circle fa-4x text-primary"></i>
+                </div>
+                <p class="mb-1"><strong>Username:</strong> {{ profile.user.username }}</p>
+                <p class="mb-1"><strong>Email:</strong> {{ profile.user.email }}</p>
+                {% if profile.user.first_name or profile.user.last_name %}
+                    <p class="mb-1"><strong>Name:</strong> {{ profile.user.first_name }} {{ profile.user.last_name }}</p>
+                {% endif %}
+                <p class="mb-1"><strong>Status:</strong> 
+                    {% if profile.status == 'pending' %}
+                        <span class="badge bg-warning">{{ profile.get_status_display }}</span>
+                    {% elif profile.status == 'approved' %}
+                        <span class="badge bg-success">{{ profile.get_status_display }}</span>
+                    {% elif profile.status == 'rejected' %}
+                        <span class="badge bg-danger">{{ profile.get_status_display }}</span>
+                    {% elif profile.status == 'suspended' %}
+                        <span class="badge bg-secondary">{{ profile.get_status_display }}</span>
+                    {% endif %}
+                </p>
+                <p class="mb-1"><strong>Registered:</strong> {{ profile.created_at|date:"M d, Y H:i" }}</p>
+                {% if profile.department %}
+                    <p class="mb-1"><strong>Department:</strong> {{ profile.department }}</p>
+                {% endif %}
+                {% if profile.phone_number %}
+                    <p class="mb-1"><strong>Phone:</strong> {{ profile.phone_number }}</p>
+                {% endif %}
+                {% if profile.approved_by %}
+                    <p class="mb-1"><strong>Approved By:</strong> {{ profile.approved_by.username }}</p>
+                    <p class="mb-0"><strong>Approved At:</strong> {{ profile.approved_at|date:"M d, Y H:i" }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Status Guidelines -->
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Status Guidelines
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        <strong>Approved:</strong> User gets full access to the system
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        <strong>Rejected:</strong> User access denied, reason required
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-pause text-warning me-2"></i>
+                        <strong>Suspended:</strong> Temporary access restriction
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-clock text-info me-2"></i>
+                        <strong>Pending:</strong> Awaiting admin review
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Custom checkbox styling for better visibility */
+.form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    border: 2px solid #3498db;
+    border-radius: 4px;
+    background-color: #ffffff;
+    cursor: pointer;
+}
+
+.form-check-input:checked {
+    background-color: #3498db;
+    border-color: #2980b9;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
+}
+
+.form-check-input:focus {
+    border-color: #2980b9;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.form-check-label {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-left: 0.5rem;
+    cursor: pointer;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Show/hide rejection reason field based on status
+    function toggleRejectionReason() {
+        var status = $('#id_status').val();
+        if (status === 'rejected') {
+            $('#rejectionReasonField').show();
+            $('#id_rejection_reason').prop('required', true);
+        } else {
+            $('#rejectionReasonField').hide();
+            $('#id_rejection_reason').prop('required', false);
+        }
+    }
+    
+    // Initial check
+    toggleRejectionReason();
+    
+    // Check on status change
+    $('#id_status').on('change', toggleRejectionReason);
+    
+    // Form validation
+    $('#approvalForm').on('submit', function(e) {
+        var status = $('#id_status').val();
+        var rejectionReason = $('#id_rejection_reason').val();
+        
+        if (status === 'rejected' && !rejectionReason.trim()) {
+            e.preventDefault();
+            alert('Rejection reason is required when rejecting a user.');
+            $('#id_rejection_reason').focus();
+        }
+    });
+});
+</script>
+{% endblock %}

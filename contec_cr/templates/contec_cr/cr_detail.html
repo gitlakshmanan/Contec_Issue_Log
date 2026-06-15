@@ -1,0 +1,145 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-11">
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Change Request Details</h5>
+                    <div>
+                        <a href="{% url 'cr_list' %}" class="btn btn-light btn-sm me-2">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                        <a href="{% url 'cr_edit' cr.id %}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Top summary -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="mb-1">CR Number</h6>
+                            <div class="fw-bold">{{ cr.cr_number|default:'(Not assigned)' }}</div>
+                        </div>
+                        <div class="text-end">
+                            <h6 class="mb-1">Status</h6>
+                            {% if cr.status == 'approved' %}
+                                <span class="badge bg-success text-capitalize">{{ cr.status }}</span>
+                            {% elif cr.status == 'submitted' %}
+                                <span class="badge bg-warning text-dark text-capitalize">{{ cr.status }}</span>
+                            {% elif cr.status == 'draft' %}
+                                <span class="badge bg-secondary text-capitalize">{{ cr.status }}</span>
+                            {% elif cr.status == 'rejected' %}
+                                <span class="badge bg-danger text-capitalize">{{ cr.status }}</span>
+                            {% else %}
+                                <span class="badge bg-info text-capitalize">{{ cr.status }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Key details as definition list -->
+                    <dl class="row mb-3">
+                        <dt class="col-sm-4 text-muted">Effecting Application</dt>
+                        <dd class="col-sm-8 fw-bold">{{ cr.effecting_app|default:'-' }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Raised by</dt>
+                        <dd class="col-sm-8">{{ cr.cr_raised_by|default:'-' }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Raised on</dt>
+                        <dd class="col-sm-8">{{ cr.cr_raised_on|date:"M d, Y"|default:'-' }}</dd>
+                    </dl>
+
+                    <hr>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <h6 class="mb-2">Description</h6>
+                        <div class="p-3 bg-light rounded text-break">{{ cr.description|default:'-'|linebreaks }}</div>
+                    </div>
+
+                    <!-- Pre/Post change -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="mb-2">Pre-Change Details</h6>
+                            <div class="p-2 bg-white border rounded text-break">{{ cr.details_pre_cr|default:'-'|linebreaks }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="mb-2">Post-Change Details</h6>
+                            <div class="p-2 bg-white border rounded text-break">{{ cr.details_post_cr|default:'-'|linebreaks }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Planning & dates -->
+                    <div class="row mt-2">
+                        <div class="col-md-4 mb-3">
+                            <dt class="text-muted">Process Manager</dt>
+                            <div class="fw-bold">{{ cr.process_manager|default:'-' }}</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <dt class="text-muted">Assigned Resource</dt>
+                            <div class="fw-bold">{{ cr.resource_name|default:'-' }}</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <dt class="text-muted">Backup Plan</dt>
+                            <div>{{ cr.back_up|default:'-' }}</div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-1">
+                        <div class="col-md-3 mb-3">
+                            <dt class="text-muted">Start</dt>
+                            <div>{{ cr.start_date|date:'M d, Y'|default:'-' }}</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <dt class="text-muted">End</dt>
+                            <div>{{ cr.end_date|date:'M d, Y'|default:'-' }}</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <dt class="text-muted">Tested On</dt>
+                            <div>{{ cr.tested_on|date:'M d, Y'|default:'-' }}</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <dt class="text-muted">Validated On</dt>
+                            <div>{{ cr.validated_on|date:'M d, Y'|default:'-' }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Risks & benefits -->
+                    <div class="row mt-2">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="mb-2">Identified Risks</h6>
+                            <div class="p-2 bg-white border rounded text-break">{{ cr.identified_risks|default:'-'|linebreaks }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="mb-2">Change Benefits</h6>
+                            <div class="p-2 bg-white border rounded text-break">{{ cr.change_benefits|default:'-'|linebreaks }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Impact & remarks -->
+                    <div class="row mt-2">
+                        <div class="col-md-6 mb-3">
+                            <dt class="text-muted">Impacted Customer</dt>
+                            <div>{{ cr.impacting_customer|default:'-' }}</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <dt class="text-muted">Remarks</dt>
+                            <div class="text-break">{{ cr.remarks|default:'-' }}</div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12 d-flex justify-content-end">
+                            <a href="{% url 'cr_list' %}" class="btn btn-light me-2">Back to list</a>
+                            <a href="{% url 'cr_edit' cr.id %}" class="btn btn-primary">Edit</a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

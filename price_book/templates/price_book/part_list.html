@@ -1,0 +1,121 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Parts Price Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 fw-bold" style="background: linear-gradient(135deg, #667eea 0%, #2b0f47 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <i class="fas fa-dollar-sign me-2"></i>Parts Price Manager
+    </h1>
+    <div class="d-flex gap-2">
+        {% if draft_count > 0 %}
+        <a href="{% url 'my_drafts' %}" class="btn btn-warning btn-sm">
+            <i class="fas fa-draft2digital me-1"></i>My Drafts ({{ draft_count }})
+        </a>
+        {% endif %}
+        <a href="{% url 'upload_csv' %}" class="btn btn-info btn-sm">
+            <i class="fas fa-upload me-1"></i>Upload CSV
+        </a>
+        <a href="{% url 'part_create' %}" class="btn btn-success btn-sm">
+            <i class="fas fa-plus me-1"></i>Add Part Price
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-5">
+                {{ form.partnumber }}
+            </div>
+            <div class="col-md-5">
+                {{ form.customer }}
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search me-1"></i>Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Approved Parts ({{ page_obj.paginator.count }} total)</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Part Number</th>
+                            <th>Customer</th>
+                            <th>Price</th>
+                            <th>Margin %</th>
+                            <th>Start Date</th>
+                            <th>PO Number</th>
+                            <th>SO Number</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for part in page_obj %}
+                        <tr>
+                            <td><strong>{{ part.partnumber }}</strong></td>
+                            <td>{{ part.customer.name }}</td>
+                            <td>${{ part.price }}</td>
+                            <td>{{ part.margin }}%</td>
+                            <td>{{ part.startdate|date:"M d, Y" }}</td>
+                            <td>{{ part.po_number|default:"-" }}</td>
+                            <td>{{ part.so_number|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'part_detail' part.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if page_obj.has_other_pages %}
+            <div class="card-footer">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No parts found</h5>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

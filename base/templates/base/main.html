@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="description" content="Modern To-Do List Application">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% block title %}Modern To-Do List{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/todo_modern.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        {% block content %}{% endblock content %}
+    </div>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-20px)';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+
+        // Smooth scroll behavior
+        document.documentElement.style.scrollBehavior = 'smooth';
+        
+        // Add loading states to buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    if (this.type === 'submit') {
+                        this.style.opacity = '0.7';
+                        this.style.pointerEvents = 'none';
+                        setTimeout(() => {
+                            this.style.opacity = '1';
+                            this.style.pointerEvents = 'auto';
+                        }, 2000);
+                    }
+                });
+            });
+        });
+    </script>
+    
+    <!-- Custom JavaScript -->
+    <script src="{% static 'js/todo_interactions.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

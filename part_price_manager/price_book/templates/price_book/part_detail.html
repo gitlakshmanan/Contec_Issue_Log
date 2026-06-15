@@ -1,0 +1,75 @@
+
+{% extends 'pricebook/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0"><i class="fas fa-table me-2"></i>Parts Price List</h4>
+        <a href="{% url 'part_create' %}" class="btn btn-light">
+            <i class="fas fa-plus-circle me-1"></i>Add New Part
+        </a>
+    </div>
+    
+    <div class="card-body">
+        <!-- Global Search Form -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <form method="get" class="row g-2">
+                    <div class="col-md-5">
+                        {{ form.partnumber|as_crispy_field }}
+                    </div>
+                    <div class="col-md-5">
+                        {{ form.customer|as_crispy_field }}
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary mt-4 w-100">
+                            <i class="fas fa-search me-1"></i>Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'part_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" onclick="exportTable()">
+                        <i class="fas fa-download me-1"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table with Column Search Headers -->
+        <div class="table-responsive">
+            <table class="table table-hover table-striped" id="partsTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>
+                            Part Number
+                            <input type="text" class="form-control form-control-sm mt-1" 
+                                   placeholder="Search..." 
+                                   onkeyup="searchColumn('partnumber', this.value)"
+                                   value="{{ column_searches.partnumber }}">
+                        </th>
+                        <th>
+                            Customer
+                            <input type="text" class="form-control form-control-sm mt-1" 
+                                   placeholder="Search..." 
+                                   onkeyup="searchColumn('customer__name', this.value)"
+                                   value="{{ column_searches.customer__name }}">
+                        </th>
+                        <th>
+                            Price
+                            <input type="text" class="form-control form-control-sm mt-1" 
+                                   placeholder="Search..." 
+                                   onkeyup="searchColumn('price', this.value)"
+                                   value="{{ column_searches.price }}">
+                        </th>
+                        <th>
+                            Margin
+                            <input type="text" class="form-control form-control-sm mt-1" 
+                                   placeholder="Search..." 
+                                   onkeyup="searchColumn('margin',

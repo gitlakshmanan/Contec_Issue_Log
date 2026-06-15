@@ -1,0 +1,43 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>CSV Import Summary</h2>
+
+    <div class="mt-3">
+        <h4>Imported</h4>
+        <p>Successfully imported <strong>{{ summary.imported_count }}</strong> issues.</p>
+    </div>
+
+    <div class="mt-3">
+        <h4>Created Lookup Entries</h4>
+        {% if summary.created_customers %}
+            <p>Customers created: {{ summary.created_customers|join:", " }}</p>
+        {% endif %}
+        {% if summary.created_categories %}
+            <p>Categories created: {{ summary.created_categories|join:", " }}</p>
+        {% endif %}
+        {% if summary.created_impacts %}
+            <p>Impact categories created: {{ summary.created_impacts|join:", " }}</p>
+        {% endif %}
+    </div>
+
+    <div class="mt-3">
+        <h4>Errors</h4>
+        {% if summary.errors %}
+            <ul>
+                {% for err in summary.errors %}
+                    <li>Line {{ err.line }}: {{ err.error }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No errors reported.</p>
+        {% endif %}
+    </div>
+
+    <div class="mt-4">
+    <a href="{% url 'import-issues' %}" class="btn btn-secondary">Back to Import</a>
+        <a href="{% url 'issues' %}" class="btn btn-primary">View Issues</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Pending Approvals</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if pending_crs %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>CR Number</th>
+                        <th>Effecting App</th>
+                        <th>Raised By</th>
+                        <th>Raised On</th>
+                        <th>Process Manager</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cr in pending_crs %}
+                    <tr>
+                        <td>{{ cr.cr_number|default:"Pending Assignment" }}</td>
+                        <td>{{ cr.effeting_app }}</td>
+                        <td>{{ cr.cr_raised_by }}</td>
+                        <td>{{ cr.cr_raised_on }}</td>
+                        <td>{{ cr.process_manager }}</td>
+                        <td>
+                            <a href="{% url 'approve_cr' cr.id %}" class="btn btn-sm btn-success">
+                                <i class="fas fa-check"></i> Review & Approve
+                            </a>
+                            <a href="{% url 'cr_detail' cr.id %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <p class="text-muted">No pending approvals</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

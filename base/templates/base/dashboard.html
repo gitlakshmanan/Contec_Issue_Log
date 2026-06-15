@@ -1,0 +1,299 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Dashboard - Contec Issue Log{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 fw-bold" style="background: linear-gradient(135deg, #667eea 0%, #2b0f47 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+    </h1>
+    <a href="{% url 'issue-create' %}" class="btn btn-success btn-sm">
+        <i class="fas fa-plus me-1"></i>New Issue
+    </a>
+</div>
+
+<!-- Statistics Overview -->
+<div class="row mb-3">
+    <div class="col-md-3 col-6 mb-2">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_issues }}</div>
+            <div class="stat-label">Total Issues</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-2">
+        <div class="stat-card">
+            <div class="stat-number">{{ open_issues }}</div>
+            <div class="stat-label">Open Issues</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-2">
+        <div class="stat-card">
+            <div class="stat-number">{{ closed_issues }}</div>
+            <div class="stat-label">Closed Issues</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6 mb-2">
+        <a href="{% url 'part_list' %}" class="text-decoration-none" style="display: block;">
+            <div class="stat-card" style="cursor: pointer !important; transition: transform 0.2s;" 
+                 onmouseover="this.style.transform='scale(1.05)'; this.style.cursor='pointer'" 
+                 onmouseout="this.style.transform='scale(1)'" 
+                 onclick="window.location.href='{% url 'part_list' %}'">
+                <div class="stat-number">{{ total_parts|default:0 }}</div>
+                <div class="stat-label"><i class="fas fa-dollar-sign me-1"></i>Parts Price Manager</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Issues -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2"></i>Recent Issues
+                    </h5>
+                    <a href="{% url 'issues' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-eye me-1"></i>View All
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_issues %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Department</th>
+                                        <th>Customer</th>
+                                        <th>Issue Category</th>
+                                        <th>Status</th>
+                                        <th>Due Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                            </thead>
+                            <tbody>
+                                {% for issue in recent_issues %}
+                                <tr>
+                                    <td>
+                                        <span style="font-weight: 600; color: #475569;">#{{ issue.id }}</span>
+                                    </td>
+                                    <td>{{ issue.department|default:'-' }}</td>
+                                    <td>{{ issue.customer }}</td>
+                                    <td>
+                                        <span style="font-weight: 500; color: #64748b;">{{ issue.issue_cat.name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-{{ issue.status|lower }}">
+                                            {{ issue.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="{% if issue.due_date < now and issue.status == 'Open' %}text-danger fw-bold{% else %}text-dark{% endif %}">
+                                            {{ issue.due_date|date:"M d, Y" }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'issue-detail' issue.pk %}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               data-bs-toggle="tooltip" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'issue-update' issue.pk %}" 
+                                               class="btn btn-sm btn-outline-warning" 
+                                               data-bs-toggle="tooltip" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No recent issues</h5>
+                        <p class="text-muted">Create your first issue to get started.</p>
+                        <a href="{% url 'issue-create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Create Issue
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Overdue Issues -->
+        {% if overdue_issues %}
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Overdue Issues
+                    </h5>
+                    <span class="badge bg-light text-dark">{{ overdue_issues|length }} overdue</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Department</th>
+                                <th>Customer</th>
+                                <th>Due Date</th>
+                                <th>Days Overdue</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for issue in overdue_issues %}
+                            <tr class="table-danger">
+                                <td>
+                                    <span class="badge bg-primary">#{{ issue.id }}</span>
+                                </td>
+                                <td>{{ issue.department|default:'-' }}</td>
+                                <td>{{ issue.customer }}</td>
+                                <td>{{ issue.due_date|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="badge bg-danger">
+                                        {{ issue.due_date|timesince }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'issue-detail' issue.pk %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'issue-update' issue.pk %}" 
+                                           class="btn btn-sm btn-outline-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <div class="row">
+            <!-- Issues by Status -->
+            <div class="col-12 col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>Issues by Status
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% for status in issues_by_status %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="status-badge status-{{ status.status|lower }}">{{ status.status }}</span>
+                            <span class="fw-bold">{{ status.count }}</span>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted mb-0">No issues found</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="col-12 col-xl-6">
+                <div class="card mb-4">
+                    <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <h6 class="mb-0">
+                            <i class="fas fa-bolt me-2"></i>Quick Actions
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'issue-create' %}" class="btn btn-success">
+                                <i class="fas fa-plus me-2"></i>Create New Issue
+                            </a>
+                            <a href="{% url 'issues' %}" class="btn btn-primary">
+                                <i class="fas fa-list me-2"></i>View All Issues
+                            </a>
+                            <a href="{% url 'issue-statistics' %}" class="btn btn-info">
+                                <i class="fas fa-chart-bar me-2"></i>View Statistics
+                            </a>
+                            <a href="{% url 'export-issues' %}" class="btn btn-warning" id="dashboardExportBtn">
+                                <i class="fas fa-download me-2"></i>Export Issues
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Your Tasks -->
+        {% if user_tasks %}
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-tasks me-2"></i>Your Tasks
+                    </h6>
+                    <a href="{% url 'tasks' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% for task in user_tasks %}
+                <div class="d-flex align-items-center mb-3">
+                    <div class="form-check me-3">
+                        <input class="form-check-input" type="checkbox" 
+                               {% if task.complete %}checked{% endif %} disabled>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 {% if task.complete %}text-decoration-line-through text-muted{% endif %}">
+                            {{ task.title }}
+                        </h6>
+                        <small class="text-muted">{{ task.created|date:"M d, Y" }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function() {
+        var btn = document.getElementById('dashboardExportBtn');
+        if (btn) {
+            var base = btn.getAttribute('href');
+            var qs = window.location.search || '';
+            btn.setAttribute('href', base + qs);
+        }
+    })();
+
+    $(document).ready(function() {
+        // Auto-refresh dashboard every 5 minutes
+        setInterval(function() {
+            location.reload();
+        }, 300000);
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
+</script>
+{% endblock %}

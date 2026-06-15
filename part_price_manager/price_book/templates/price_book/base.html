@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Parts Price Manager{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .table-responsive {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .table th {
+            position: sticky;
+            top: 0;
+            background-color: #343a40;
+            color: white;
+            z-index: 10;
+        }
+        .search-header {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .status-draft { background-color: #ffc107; color: #000; }
+        .status-submitted { background-color: #17a2b8; color: #fff; }
+        .status-reviewed { background-color: #28a745; color: #fff; }
+        .status-approved { background-color: #007bff; color: #fff; }
+        .status-rejected { background-color: #dc3545; color: #fff; }
+        .status-badge {
+            padding: 0.25em 0.6em;
+            border-radius: 10px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .clickable-row {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .clickable-row:hover {
+            background-color: rgba(0, 123, 255, 0.1) !important;
+        }
+        .modal-xl {
+            max-width: 90%;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'part_list' %}">
+                <i class="fas fa-tools me-2"></i>Parts Price Manager
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'part_list' %}">
+                                <i class="fas fa-list me-1"></i>Parts List
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'part_create' %}">
+                                <i class="fas fa-plus-circle me-1"></i>Add New Part
+                            </a>
+                        </li>
+                        {% if user.groups.all.0.name == "Reviewers" %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'review_list' %}">
+                                <i class="fas fa-clipboard-check me-1"></i>Review Queue
+                                {% if user.reviewed_parts.count %}
+                                <span class="badge bg-danger">{{ user.reviewed_parts.count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if user.groups.all.0.name == "Approvers" %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'approval_list' %}">
+                                <i class="fas fa-check-double me-1"></i>Approval Queue
+                                {% if user.approved_parts.count %}
+                                <span class="badge bg-danger">{{ user.approved_parts.count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i>{{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#">
+                                    <i class="fas fa-id-card me-2"></i>Profile
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Modal for part details -->
+    <div class="modal fade" id="partDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Part Price Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="partDetailContent">
+                    <!-- Content loaded via AJAX -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    {% block scripts %}{% endblock %}
+    
+    <script>
+        $(document).ready(function() {
+            // Auto-dismiss alerts after 5 seconds
+            setTimeout(function() {
+                $('.alert').alert('close');
+            }, 5000);
+            
+            // Handle double-click on table rows for detail view
+            $('.clickable-row').dblclick(function() {
+                const partId = $(this).data('part-id');
+                if (partId) {
+                    loadPartDetails(partId);
+                }
+            });
+            
+            // Handle single click for selection
+            $('.clickable-row').click(function(e) {
+                if (!$(e.target).is('a, button, input, select, textarea')) {
+                    $('.clickable-row').removeClass('table-active');
+                    $(this).addClass('table-active');
+                }
+            });
+        });
+        
+        function loadPartDetails(partId) {
+            $.ajax({
+                url: '{% url "get_part_details" %}',
+                type: 'GET',
+                data: { id: partId },
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function(data) {
+                    const content = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-bordered">
+                                    <tr><th>Part Number</th><td>${data.partnumber}</td></tr>
+                                    <tr><th>Customer</th><td>${data.customer}</td></tr>
+                                    <tr><th>Price</th><td>$${data.price}</td></tr>
+                                    <tr><th>Margin</th><td>${data.margin}%</td></tr>
+                                    <tr><th>PO Number</th><td>${data.po_number || 'N/A'}</td></tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-bordered">
+                                    <tr><th>SO Number</th><td>${data.so_number || 'N/A'}</td></tr>
+                                    <tr><th>Start Date</th><td>${data.startdate}</td></tr>
+                                    <tr><th>End Date</th><td>${data.enddate || 'Open'}</td></tr>
+                                    <tr><th>Created Date</th><td>${data.created_date}</td></tr>
+                                    <tr><th>Status</th><td><span class="badge bg-primary">${data.status}</span></td></tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>Remarks:</h6>
+                                <div class="border p-3 bg-light">${data.remarks || 'No remarks'}</div>
+                            </div>
+                        </div>
+                    `;
+                    $('#partDetailContent').html(content);
+                    $('#partDetailModal').modal('show');
+                },
+                error: function() {
+                    alert('Error loading part details');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Issue Management System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --info-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        }
+
+        html {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+            letter-spacing: 0.3px;
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-brand {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            letter-spacing: -0.5px;
+            padding: 8px 0;
+        }
+        
+        .navbar-nav .nav-link {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9) !important;
+            padding: 8px 16px !important;
+            margin: 0 2px;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid transparent;
+            letter-spacing: 0.3px;
+            position: relative;
+            white-space: nowrap;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white !important;
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .navbar-nav .nav-link i {
+            font-size: 0.95rem;
+            margin-right: 6px;
+            opacity: 0.9;
+        }
+
+        .navbar-nav .nav-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .navbar-nav .dropdown-toggle::after {
+            margin-left: 6px;
+            vertical-align: 0.15em;
+        }
+        
+        .user-display {
+            background: rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            padding: 12px 24px !important;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-left: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .user-display:hover {
+            background: rgba(255, 255, 255, 0.25) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .user-display i {
+            margin-right: 8px;
+            font-size: 1rem;
+        }
+        
+        .dropdown-menu {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            margin-top: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 1060;
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .dropdown-item {
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 2px 0;
+            font-size: 0.95rem;
+        }
+        
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            color: white;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
+        }
+        
+        .dropdown-item i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        .dropdown-divider {
+            margin: 8px 0;
+            border-top: 2px solid rgba(102, 126, 234, 0.2);
+        }
+        
+        .dropdown-toggle::after {
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .dropdown-toggle[aria-expanded="true"]::after {
+            transform: rotate(180deg);
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            padding: 25px;
+            min-height: calc(100vh - 100px);
+            max-width: min(1400px, 96vw);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(30, 64, 175, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(30, 64, 175, 0.35);
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(6, 95, 70, 0.25);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(6, 95, 70, 0.35);
+            background: linear-gradient(135deg, #047857 0%, #059669 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(180, 83, 9, 0.25);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(180, 83, 9, 0.35);
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(185, 28, 28, 0.25);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(185, 28, 28, 0.35);
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #0e7490 0%, #155e75 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(14, 116, 144, 0.25);
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(14, 116, 144, 0.35);
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+        }
+
+        /* Global logout button style (teal / dark-blue to match week numbers) */
+        .logout-btn {
+            background: linear-gradient(180deg,#0d9488,#075985);
+            color: #ffffff !important;
+            padding: 8px 14px;
+            border-radius: 18px;
+            text-decoration: none !important;
+            display: inline-block;
+            border: none;
+            box-shadow: 0 6px 18px rgba(2,6,23,0.12);
+            font-weight: 600;
+        }
+
+        .logout-btn:hover { filter: brightness(0.95); transform: translateY(-1px); }
+
+        /* Navbar-specific logout appearance (small, inline) */
+        .nav-link.logout-btn { padding: 6px 10px !important; border-radius: 14px; }
+
+        .btn-light {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #475569;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-light:hover {
+            background: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            color: #334155;
+        }
+
+        .form-control {
+            font-family: 'Inter', sans-serif;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .table {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .table thead th {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            font-weight: 500;
+            padding: 15px;
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.1);
+            transform: scale(1.01);
+        }
+
+        .table tbody td {
+            border: none;
+            padding: 15px;
+            vertical-align: middle;
+        }
+
+        /* Scoped fixes for the issues table to keep header & columns aligned */
+        .issue-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+        .issue-table th,
+        .issue-table td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        /* column width hints are now provided via <colgroup> in specific templates */
+
+        @media (max-width: 768px) {
+            .issue-table th,
+            .issue-table td { white-space: normal; }
+        }
+
+        .status-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .status-open {
+            background: var(--warning-gradient);
+            color: white;
+        }
+
+        .status-closed {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .status-dismissed {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px 16px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            border-color: #cbd5e1;
+        }
+
+        .stat-number {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1e293b;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+        }
+
+        .stat-label {
+            font-family: 'Inter', sans-serif;
+            color: #64748b;
+            font-weight: 500;
+            font-size: 0.95rem;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .search-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            border: none;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .alert {
+            border: none;
+            border-radius: 15px;
+            padding: 15px 20px;
+        }
+
+        .pagination .page-link {
+            border: none;
+            border-radius: 10px;
+            margin: 0 5px;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .pagination .page-item.active .page-link {
+            background: var(--primary-gradient);
+            border: none;
+        }
+
+        .pagination .page-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .footer {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 10px auto;
+                padding: 15px;
+                max-width: 100%;
+            }
+            
+            .table-responsive {
+                border-radius: 15px;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Card header consistency */
+        .card-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+            color: white !important;
+        }
+        
+        /* Typography improvements */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            line-height: 1.3;
+        }
+        
+        h1 { font-size: 1.875rem; font-weight: 700; }
+        h2 { font-size: 1.5rem; font-weight: 600; }
+        h3 { font-size: 1.25rem; font-weight: 600; }
+        h4 { font-size: 1.125rem; font-weight: 600; }
+        h5 { font-size: 1rem; font-weight: 600; }
+        h6 { font-size: 0.875rem; font-weight: 600; }
+        
+        p, span, div {
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.2px;
+        }
+        
+        .table thead th {
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: 1px;
+        }
+        
+        .table tbody td {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+        
+        .btn {
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: 0.3px;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-gradient);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation  (nav bar sequencial )-->
+    {% if user.is_authenticated %}
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'dashboard' %}">
+                <i class="fas fa-bug me-2"></i>Contec Issue Log
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    {% if user.is_superuser or user.profile.is_approved and user.profile.can_access_issues|default:True %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="issuesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bug me-1"></i>Issue Log
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="issuesDropdown">
+                            <li><a class="dropdown-item" href="{% url 'issues' %}">
+                                <i class="fas fa-list me-2"></i>All Issues
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'issue-create' %}">
+                                <i class="fas fa-plus me-2"></i>New Issue
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'closed-issues' %}">
+                                <i class="fas fa-check-circle me-2"></i>Closed Issues
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'issue-statistics' %}">
+                                <i class="fas fa-chart-bar me-2"></i>Statistics
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if user.is_superuser or user.profile.is_approved and user.profile.can_access_tasks|default:True %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="tasksDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-tasks me-1"></i>Tasks
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="tasksDropdown">
+                            <li><a class="dropdown-item" href="{% url 'tasks' %}">
+                                <i class="fas fa-list me-2"></i>All Tasks
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'task-create' %}">
+                                <i class="fas fa-plus me-2"></i>New Task
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if user.is_superuser or user.profile.is_approved and user.profile.can_access_cr|default:False %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="crDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-exchange-alt me-1"></i>Change Requests
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="crDropdown">
+                            <li><a class="dropdown-item" href="{% url 'cr_list' %}">
+                                <i class="fas fa-list me-2"></i>All CRs
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'cr_create' %}">
+                                <i class="fas fa-plus me-2"></i>New CR
+                            </a></li>
+                            {% if user.is_superuser or user.profile.can_access_approvals %}
+                            <li><a class="dropdown-item" href="{% url 'approval_screen' %}">
+                                <i class="fas fa-check-double me-2"></i>Approvals
+                            </a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if user.is_superuser or user.profile.is_approved and user.profile.can_access_parts|default:False %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="partsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-dollar-sign me-1"></i>Parts Price
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="partsDropdown">
+                            <li><a class="dropdown-item" href="{% url 'part_list' %}">
+                                <i class="fas fa-list me-2"></i>All Parts
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'part_create' %}">
+                                <i class="fas fa-plus me-2"></i>New Part
+                            </a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if user.is_superuser %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'user-management' %}">
+                            <i class="fas fa-users me-1"></i>User Management
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'user-profile' %}">
+                            <i class="fas fa-user me-1"></i>Profile
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <span class="nav-link user-display">
+                                <i class="fas fa-user-circle"></i>{{ user.get_full_name|default:user.username }}
+                            </span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link logout-btn" href="{% url 'logout' %}">
+                                <i class="fas fa-sign-out-alt me-1"></i>Logout
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'register' %}">
+                                <i class="fas fa-user-plus me-1"></i>Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% else %}
+    <!-- Minimal header for non-superusers: hide menus and show only Welcome/Login/Register -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'welcome' %}">
+                <i class="fas fa-bug me-2"></i>Contec Issue Log
+            </a>
+            <div class="ms-auto">
+                {% if user.is_authenticated %}
+                    <a class="nav-link d-inline text-white logout-btn" href="{% url 'logout' %}">
+                        <i class="fas fa-sign-out-alt me-1"></i>Logout
+                    </a>
+                {% else %}
+                    <a class="nav-link d-inline text-white" href="{% url 'login' %}">
+                        <i class="fas fa-sign-in-alt me-1"></i>Login
+                    </a>
+                    <a class="nav-link d-inline text-white ms-3" href="{% url 'register' %}">
+                        <i class="fas fa-user-plus me-1"></i>Register
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Toast container for JS to inject toasts (Bootstrap native toasts) -->
+    <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="z-index:2000; margin-top:80px;"></div>
+
+    <!-- Main Content -->
+    <div class="main-container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p class="mb-0">
+            <i class="fas fa-heart text-danger me-1"></i>
+            Contec Issue_Log &copy; {% now "Y" %} | Built by Invoicing Team
+        </p>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+
+        // Confirm delete actions
+        function confirmDelete(message = 'Are you sure you want to delete this item?') {
+            return confirm(message);
+        }
+
+        // Loading button state
+        function setLoading(button, loading = true) {
+            if (loading) {
+                button.prop('disabled', true);
+                button.html('<span class="loading"></span> Loading...');
+            } else {
+                button.prop('disabled', false);
+                button.html(button.data('original-text'));
+            }
+        }
+
+        // Initialize tooltips
+        $(document).ready(function() {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+    
+        // Global handler for email form submission (AJAX)
+        document.addEventListener('submit', function(e) {
+            var form = e.target;
+            if (form && form.id === 'emailForm') {
+                e.preventDefault();
+                // Basic frontend validation
+                var toEmail = form.querySelector('[name="to_email"]') ? form.querySelector('[name="to_email"]').value.trim() : '';
+                var subjectVal = form.querySelector('[name="subject"]') ? form.querySelector('[name="subject"]').value.trim() : '';
+                var messageVal = form.querySelector('[name="message"]') ? form.querySelector('[name="message"]').value.trim() : '';
+                var emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+                if (!toEmail || !emailRe.test(toEmail)) {
+                    // show toast error
+                    showToast('Please enter a valid recipient email address.', 'danger');
+                    return;
+                }
+                if (!subjectVal) {
+                    showToast('Please enter an email subject.', 'danger');
+                    return;
+                }
+                if (!messageVal) {
+                    showToast('Please enter a message body.', 'danger');
+                    return;
+                }
+
+                var submitBtn = form.querySelector('button[type="submit"]');
+                var originalText = submitBtn ? submitBtn.innerHTML : null;
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="loading"></span> Sending...';
+                }
+
+                var formData = new FormData(form);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(function(resp) { return resp.json(); })
+                .then(function(data) {
+                    if (data && data.status === 'success') {
+                        // hide modal
+                        var modalEl = document.getElementById('emailModal');
+                        var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                        modal.hide();
+
+                        // show toast
+                    showToast(data.message || 'Email sent successfully!', 'success');
+                    } else {
+                    showToast((data && data.message ? data.message : 'Unknown error'), 'danger');
+                    }
+                })
+                .catch(function() {
+                    showToast('An error occurred while sending the email.', 'danger');
+                })
+                .finally(function() {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        if (originalText) submitBtn.innerHTML = originalText;
+                    }
+                });
+            }
+        });
+
+        // Bootstrap native toast helper
+        function showToast(message, level='success', delay=5000) {
+            var toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) return;
+
+            var toastId = 'toast-' + Date.now();
+            var toastHtml = `
+                <div id="${toastId}" class="toast align-items-center text-bg-${level === 'danger' ? 'danger' : 'success'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>`;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            var toastEl = document.getElementById(toastId);
+            var toast = new bootstrap.Toast(toastEl, { delay: delay });
+            toast.show();
+            // remove from DOM after hidden to keep container clean
+            toastEl.addEventListener('hidden.bs.toast', function() { try { toastEl.remove(); } catch(e){} });
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

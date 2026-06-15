@@ -1,0 +1,254 @@
+{% extends 'base/main.html' %}
+{% block title %}My Tasks - Modern To-Do List{% endblock %}
+
+{% block extra_css %}
+<style>
+    .task-stats {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .stat-item {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 15px 20px;
+        border-radius: 15px;
+        text-align: center;
+        min-width: 120px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .stat-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .welcome-message {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .welcome-message h2 {
+        color: #667eea;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    
+    .welcome-message p {
+        color: #6c757d;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+<!-- Header Section -->
+<div class="header-bar">
+    <div class="header-content">
+    <h1><i class="fas fa-tasks me-2"></i>Hello {{request.user|title}}!</h1>
+    <h3>You have <i>{{ total_tasks }}</i> task{{ total_tasks|pluralize }} in your list</h3>
+    </div>
+    <div>
+        <a href="{% url 'dashboard' %}" style="margin-right: 15px;">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+        {% if request.user.is_authenticated %}
+            <a href="{% url 'logout' %}">
+                <i class="fas fa-sign-out-alt me-2"></i>Logout
+            </a>
+        {% else %}
+            <a href="{% url 'login' %}">
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Task Statistics -->
+{% if tasks|length > 0 %}
+<div style="padding: 30px; background: rgba(255, 255, 255, 0.8); border-bottom: 1px solid rgba(0, 0, 0, 0.05);">
+    <div class="task-stats">
+        <div class="stat-item">
+                <div class="stat-number">{{ total_tasks }}</div>
+            <div class="stat-label">Total Tasks</div>
+        </div>
+        <div class="stat-item">
+                <div class="stat-number">{{ completed_tasks }}</div>
+                <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-item">
+                <div class="stat-number">{{ remaining_tasks }}</div>
+                <div class="stat-label">Remaining</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Search and Add Section -->
+<div id="search-add-wrapper">
+    <form method="GET">
+        <input type='text' name='search-area' placeholder="🔍 Search your tasks..." value="{{search_input}}">
+        <input class="button" type="submit" value='Search'>
+    </form>
+    {% if tasks|length > 0 or search_input %}
+        <a id="add-link" href="{% url 'task-create' %}" title="Add New Task">
+            <i class="fas fa-plus"></i>
+        </a>
+    {% endif %}
+</div>
+
+<!-- Hidden form for reordering -->
+<form style="display: none;" id="reorderForm" method="post" action="{% url 'task-reorder' %}">
+    {% csrf_token %}
+    <input type="hidden" id="positionInput" name="position">
+</form>
+
+<!-- Task List -->
+<div id="tasklist" class="task-items-wrapper">
+    {% for task in tasks %}
+        <div class="task-wrapper{% if task.complete %} completed{% endif %}" data-position="{{task.pk}}">
+            <div class="task-title">
+                {% if task.complete %}
+                    <div class="task-complete-icon" title="Completed Task"></div>
+                    <a href="{% url 'task-update' task.id %}">{{task}}</a>
+                {% else %}
+                    <div class="task-incomplete-icon" title="Pending Task"></div>
+                    <a href="{% url 'task-update' task.id %}">{{task}}</a>
+                {% endif %}
+            </div>
+            <div class="task-controls">
+                <a class="delete-link" href="{% url 'task-delete' task.id %}" 
+                   onclick="return confirm('Are you sure you want to delete this task?')" 
+                   title="Delete Task">
+                    <i class="fas fa-trash"></i>
+                </a>
+                <span class="handle" title="Drag to Reorder">
+                    <i class="fas fa-grip-vertical"></i>
+                </span>
+            </div>
+        </div>
+    {% empty %}
+        <div class="empty-state">
+            {% if search_input %}
+                <h3><i class="fas fa-search me-2"></i>No tasks found for "{{search_input}}"</h3>
+                <h3>Try a different search term or <a href="{% url 'tasks' %}">view all tasks</a></h3>
+            {% else %}
+                <h3><i class="fas fa-clipboard-list me-2"></i>No tasks created yet</h3>
+                <h3>Create your <a href="{% url 'task-create' %}">first task</a> to get started!</h3>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Welcome Message for New Users -->
+{% if not tasks and not search_input %}
+<div style="padding: 30px;">
+    <div class="welcome-message">
+        <h2><i class="fas fa-rocket me-2"></i>Welcome to Your Task Manager!</h2>
+        <p>Start organizing your life by creating your first task. Click the + button above to get started.</p>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Sortable
+    var taskList = document.getElementById("tasklist");
+    var reorderForm = document.getElementById("reorderForm");
+    var positionInput = document.getElementById("positionInput");
+
+    if (taskList) {
+        let sortable = Sortable.create(taskList, {
+            handle: '.handle',
+            ghostClass: 'dropArea',
+            chosenClass: 'selectedTask',
+            animation: 150,
+            easing: "cubic-bezier(1, 0, 0, 1)",
+            onEnd: function(evt) {
+                reordering();
+            }
+        });
+    }
+
+    function reordering() {
+        const rows = document.getElementsByClassName("task-wrapper");
+        let pos = [];
+        for (let row of rows) {
+            pos.push(row.dataset.position);
+        }
+        positionInput.value = pos.join(',');
+        reorderForm.submit();
+    }
+
+    // Add smooth animations to task interactions
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add click animation to task icons
+        const taskIcons = document.querySelectorAll('.task-complete-icon, .task-incomplete-icon');
+        taskIcons.forEach(icon => {
+            icon.addEventListener('click', function() {
+                this.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 150);
+            });
+        });
+
+        // Add hover effects to task wrappers
+        const taskWrappers = document.querySelectorAll('.task-wrapper');
+        taskWrappers.forEach(wrapper => {
+            wrapper.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(5px)';
+            });
+            wrapper.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateX(0)';
+            });
+        });
+
+        // Auto-focus search input
+        const searchInput = document.querySelector('input[name="search-area"]');
+        if (searchInput && !searchInput.value) {
+            searchInput.focus();
+        }
+    });
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + N for new task
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+            e.preventDefault();
+            window.location.href = "{% url 'task-create' %}";
+        }
+        
+        // Escape to clear search
+        if (e.key === 'Escape') {
+            const searchInput = document.querySelector('input[name="search-area"]');
+            if (searchInput && searchInput.value) {
+                searchInput.value = '';
+                searchInput.form.submit();
+            }
+        }
+    });
+</script>
+{% endblock %}

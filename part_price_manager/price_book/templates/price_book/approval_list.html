@@ -1,0 +1,55 @@
+
+{% extends 'pricebook/base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-success text-white">
+        <h4 class="mb-0"><i class="fas fa-check-double me-2"></i>Parts Pending Approval</h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-success">
+                    <tr>
+                        <th>ID</th>
+                        <th>Part Number</th>
+                        <th>Customer</th>
+                        <th>Price</th>
+                        <th>Margin</th>
+                        <th>Created By</th>
+                        <th>Reviewed By</th>
+                        <th>Review Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for part in parts %}
+                    <tr>
+                        <td>{{ part.id }}</td>
+                        <td><strong>{{ part.partnumber }}</strong></td>
+                        <td>{{ part.customer.name }}</td>
+                        <td>${{ part.price }}</td>
+                        <td>{{ part.margin }}%</td>
+                        <td>{{ part.created_by.username }}</td>
+                        <td>{{ part.reviewer.username }}</td>
+                        <td>{{ part.reviewer_date|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <a href="{% url 'approve_part' part.id %}" class="btn btn-success btn-sm">
+                                <i class="fas fa-check-double me-1"></i>Approve/Reject
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i><br>
+                            No parts pending approval.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

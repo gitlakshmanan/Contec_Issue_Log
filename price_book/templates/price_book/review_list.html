@@ -1,0 +1,56 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Review Parts{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 fw-bold" style="background: linear-gradient(135deg, #667eea 0%, #2b0f47 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <i class="fas fa-clipboard-check me-2"></i>Parts Pending Review
+    </h1>
+</div>
+
+<div class="card">
+    <div class="card-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Submitted Parts ({{ parts.count }})</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if parts %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Part Number</th>
+                            <th>Customer</th>
+                            <th>Price</th>
+                            <th>Submitted By</th>
+                            <th>Submitted Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for part in parts %}
+                        <tr>
+                            <td><strong>{{ part.partnumber }}</strong></td>
+                            <td>{{ part.customer.name }}</td>
+                            <td>${{ part.price }}</td>
+                            <td>{{ part.created_by.username }}</td>
+                            <td>{{ part.created_date|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'review_part' part.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-check me-1"></i>Review
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No parts pending review</h5>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

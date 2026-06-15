@@ -1,0 +1,305 @@
+<!doctype html>
+{% load static %}
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Contec LLC</title>
+	<style>
+		:root{--bg:#f5f7fb;--card-bg:#fff;--muted:#6b7280}
+		html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:#111}
+
+		/* Outer framed layout */
+		.page{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;box-sizing:border-box}
+		.frame{width:100%;max-width:1100px;min-height:68vh;border-radius:12px;border:4px solid #3b82f6;overflow:hidden;background:linear-gradient(180deg,#ffffff 0%, #fbfdff 100%);box-shadow:0 8px 30px rgba(16,24,40,0.08);}
+
+		.container{display:flex;height:100%}
+		.left{width:50%;padding:28px;box-sizing:border-box;border-right:1px solid #e6eef6;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start}
+		.left-body{flex:1;display:flex;align-items:center;justify-content:center;padding:8px}
+		.right{width:50%;flex:none;padding:28px;box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start}
+		.right-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px;gap:16px}
+		h1.title{margin:0 0 18px;font-size:20px;letter-spacing:0.6px}
+
+		/* Calendar */
+		.calendar-wrap{background:var(--card-bg);border-radius:10px;padding:16px;box-shadow:0 6px 18px rgba(16,24,40,0.06);width:100%;max-width:none}
+		.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+		.cal-controls{display:flex;gap:8px;align-items:center}
+		.btn{background:#eef2ff;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
+		.month-title{font-weight:600}
+
+		/* Logout button under metrics */
+		#logout-under-metrics{background:linear-gradient(180deg,#0d9488,#075985);color:#ffffff;padding:10px 18px;border-radius:18px;text-decoration:none;display:inline-block;border:0;box-shadow:0 6px 18px rgba(2,6,23,0.12)}
+		#logout-under-metrics:hover{filter:brightness(0.95);transform:translateY(-1px)}
+
+		table.calendar{width:100%;border-collapse:collapse;font-size:13px}
+		table.calendar thead th{color:var(--muted);padding:8px 6px;text-align:center;font-weight:600}
+		table.calendar thead th.weeknum{width:48px;text-align:left;padding-left:8px}
+		table.calendar tbody td{width:calc((100% - 48px)/7);height:72px;vertical-align:top;padding:6px;border-top:1px solid #f1f5f9}
+		table.calendar tbody td.weeknum{width:48px;background:linear-gradient(180deg,#0d9488,#075985);color:#ffffff;font-weight:700;text-align:left;padding:8px;border-right:1px solid rgba(255,255,255,0.06);border-left:1px solid rgba(255,255,255,0.02);box-shadow:inset 0 -1px 0 rgba(255,255,255,0.02)}
+		.day{display:inline-block;padding:6px;border-radius:6px;color:#0f172a}
+		.other-month{color:#9aa4b2}
+		.today{background:#0ea5a4;color:white}
+
+		/* Right metrics */
+		.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;align-items:start;justify-items:center;margin-top:6px}
+		/* Clocks */
+		.clocks{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;justify-items:center}
+		.clock-card{background:linear-gradient(135deg,#0ea5a4,#06b6d4);color:#fff;padding:12px;border-radius:10px;width:180px;text-align:center;box-shadow:0 6px 18px rgba(2,6,23,0.12)}
+		.clock-card .label{font-size:14px;opacity:0.95}
+		.clock-card .time{font-size:20px;font-weight:700;margin-top:6px;letter-spacing:0.5px}
+		.clock-section{width:100%;border-bottom:1px solid rgba(15,23,42,0.06);padding-bottom:12px;margin-bottom:12px;display:flex;flex-direction:column;align-items:center}
+		.clocks-title{font-weight:600;color:#0f172a;margin-bottom:8px}
+			.card{padding:18px;border-radius:10px;color:#fff;display:flex;flex-direction:column;justify-content:center;box-shadow:0 6px 18px rgba(16,24,40,0.06);width:180px;text-align:center;text-decoration:none}
+		.card .label{font-size:13px;opacity:0.92}
+		.card .value{font-size:28px;font-weight:700;margin-top:8px}
+		.c-iss{background:linear-gradient(135deg,#f97316,#fb923c)}
+		.c-task{background:linear-gradient(135deg,#06b6d4,#0891b2)}
+		.c-cr{background:linear-gradient(135deg,#7c3aed,#6d28d9)}
+		.c-part{background:linear-gradient(135deg,#10b981,#059669)}
+		.c-part{background:linear-gradient(135deg,#e7ea14,#055296)}
+
+		@media (max-width:900px){
+			.container{flex-direction:column}
+			.left{width:100%;border-right:0;border-bottom:1px solid #e6eef6;padding:18px}
+			.right{padding:18px}
+			.frame{min-height:unset}
+		}
+	</style>
+</head>
+<body>
+	<div class="page">
+		<div class="frame">
+			<div class="container">
+		<aside class="left">
+			<h1 class="title" style="color: #dc0b0b;">Contec LLC</h1>
+			<!-- h1 class="title">Contec LLC</h1 -->
+
+			<div class="left-body">
+				<div class="calendar-wrap">
+				<div class="cal-header">
+					<div class="month-title" id="monthTitle">Month</div>
+					<div class="cal-controls">
+						<button class="btn" id="prevBtn">◀</button>
+						<button class="btn" id="nextBtn">▶</button>
+					</div>
+				</div>
+
+				<table class="calendar" id="calendar">
+					<thead>
+						<tr>
+							<th class="weeknum">Week</th>
+							<th>Sun</th>
+							<th>Mon</th>
+							<th>Tue</th>
+							<th>Wed</th>
+							<th>Thu</th>
+							<th>Fri</th>
+							<th>Sat</th>
+						</tr>
+					</thead>
+					<tbody id="calBody">
+						<!-- generated -->
+					</tbody>
+				</table>
+				</div>
+			</div>
+		</aside>
+
+			<main class="right">
+
+			<div class="right-body">
+				<div class="clock-section">
+					<!-- div class="clocks-title">Local Time</div -->
+					<div class="clocks-title"><h2>Local Time</h2></div>
+					<div class="clocks" aria-hidden="false">
+						<div class="clock-card" id="clock-scenactedy">
+							<div class="label">Scenactedy</div>
+							<div class="time" id="time-scenactedy">--:--:--</div>
+						</div>
+						<div class="clock-card" id="clock-charlotte">
+							<div class="label">Charlotte</div>
+							<div class="time" id="time-charlotte">--:--:--</div>
+						</div>
+						<div class="clock-card" id="clock-sanjose">
+							<div class="label">Sanjose</div>
+							<div class="time" id="time-sanjose">--:--:--</div>
+						</div>
+						<div class="clock-card" id="clock-brownsville">
+							<div class="label">Brownsville</div>
+							<div class="time" id="time-brownsville">--:--:--</div>
+						</div>
+					</div>
+				</div>
+			<div style="width:100%;display:flex;justify-content:center;margin-top:6px;margin-bottom:6px">
+				<h2 style="margin:0">Login</h2>
+			</div>
+			<!-- Metric Cards of Contenc Login Page -->
+			<div class="metrics">
+				<a href="{% url 'issues' %}" class="card c-iss">
+					<div class="label">IssueLog</div>
+					<div class="value" id="v1">{{ total_issues|default:0 }}</div>
+				</a>
+				<a href="{% url 'tasks' %}" class="card c-task">
+					<div class="label">Task</div>
+					<div class="value" id="v2">{{ user_tasks_count|default:0 }}</div>
+				</a>
+				<a href="{% url 'cr_list' %}" class="card c-cr">
+					<div class="label">CR_Form</div>
+					<div class="value" id="v3">{{ cr_count|default:0 }}</div>
+				</a>
+				<a href="{% url 'part_list' %}" class="card c-part">
+					<div class="label">Part_PriceBook</div>
+					<div class="value" id="v4">{{ total_parts|default:0 }}</div>
+				</a>
+				
+				
+
+				</div>
+				<div style="width:100%;display:flex;justify-content:center;margin-top:12px">
+					<a href="{% url 'logout' %}" class="logout-btn" id="logout-under-metrics" onclick="window.location.href='{% url 'logout' %}'; return false;">Logout</a>
+				</div>
+			</div>
+		</main>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// Utility: get week number where week starts Sunday.
+		function getWeekNumberSunday(date){
+			// Find Sunday at or before Jan 1 of year
+			const year = date.getFullYear();
+			const jan1 = new Date(year,0,1);
+			const jan1Day = jan1.getDay(); // 0=Sun
+			const firstSunday = new Date(year,0,1 - jan1Day);
+			const diff = date.setHours(0,0,0,0) - firstSunday.setHours(0,0,0,0);
+			const week = Math.floor(diff / (7*24*3600*1000)) + 1;
+			return week;
+		}
+
+		function buildCalendar(year,month){
+			const calBody = document.getElementById('calBody');
+			calBody.innerHTML = '';
+			const first = new Date(year,month,1);
+			const last = new Date(year,month+1,0);
+
+			// Determine the first Sunday to show (start of first row)
+			const start = new Date(first);
+			start.setDate(first.getDate() - first.getDay());
+
+			// Determine end Saturday
+			const end = new Date(last);
+			end.setDate(last.getDate() + (6 - last.getDay()));
+
+			let cur = new Date(start);
+			while(cur <= end){
+				// build week row
+				const tr = document.createElement('tr');
+
+				// Week number cell (using Sunday-based week)
+				// Week number cell (using Sunday-based week). For Week 1 show first-three-days range (e.g. "1 (1–3)")
+				const wk = getWeekNumberSunday(new Date(cur));
+				const tdW = document.createElement('td');
+				tdW.className = 'weeknum';
+				let label = wk;
+				// Treat week numbers >52 at start of year as Week 1 and show first-three-days range
+				if (wk === 1 || (wk > 52 && cur.getMonth() === 0)) {
+					const days = [];
+					const tmp = new Date(cur);
+					for (let i = 0; i < 7; i++) {
+						if (tmp.getFullYear() === year && tmp.getMonth() === 0 && tmp.getDate() <= 3) {
+							days.push(tmp.getDate());
+						}
+						tmp.setDate(tmp.getDate() + 1);
+					}
+					if (days.length) {
+						label = wk + ' (' + days[0] + (days.length > 1 ? '–' + days[days.length - 1] : '') + ')';
+					}
+				}
+				tdW.textContent = label;
+				tr.appendChild(tdW);
+
+				for(let d=0; d<7; d++){
+					const td = document.createElement('td');
+					if(cur.getMonth() !== month) td.classList.add('other-month');
+					if(isSameDate(cur,new Date())) td.classList.add('today');
+					const span = document.createElement('div');
+					span.className = 'day';
+					span.textContent = cur.getDate();
+					td.appendChild(span);
+					tr.appendChild(td);
+					cur.setDate(cur.getDate()+1);
+				}
+
+				calBody.appendChild(tr);
+			}
+
+			// Update month title
+			const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+			document.getElementById('monthTitle').textContent = monthNames[month] + ' ' + year;
+		}
+
+		function isSameDate(a,b){return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();}
+
+		// initialize
+		(function(){
+			const now = new Date();
+			let curY = now.getFullYear(), curM = now.getMonth();
+			buildCalendar(curY,curM);
+
+			document.getElementById('prevBtn').addEventListener('click',()=>{curM--; if(curM<0){curM=11;curY--;} buildCalendar(curY,curM)});
+			document.getElementById('nextBtn').addEventListener('click',()=>{curM++; if(curM>11){curM=0;curY++;} buildCalendar(curY,curM)});
+		})();
+	</script>
+
+	<script>
+		// Poll metrics API and update metric cards
+		async function fetchMetrics(){
+			try{
+				const res = await fetch("{% url 'metrics_api' %}", {credentials: 'same-origin'});
+				if(!res.ok) throw new Error('Network response was not ok');
+				const data = await res.json();
+				if(data.error) throw new Error(data.error);
+				// Update DOM safely
+				const setText = (id, val)=>{const el=document.getElementById(id); if(el) el.textContent = val};
+				setText('v1', data.total_issues ?? 0);
+				setText('v2', data.user_tasks_count ?? 0);
+				setText('v3', data.cr_count ?? 0);
+			}catch(e){
+				console.warn('Failed to fetch metrics:', e);
+			}
+		}
+
+		// Initial fetch and periodic refresh
+		fetchMetrics();
+		setInterval(fetchMetrics, 30000); // refresh every 30 seconds
+	</script>
+
+	<script>
+		// Live clocks for multiple locations
+		(function(){
+			const zones = {
+				'scenactedy': 'America/New_York',
+				'charlotte': 'America/New_York',
+				'sanjose': 'America/Los_Angeles',
+				'brownsville': 'America/Chicago'
+			};
+
+			function updateClocks(){
+				Object.keys(zones).forEach(key=>{
+					const el = document.getElementById('time-'+key);
+					if(!el) return;
+					const now = new Date();
+					const timeStr = now.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, hourCycle: 'h23', timeZone: zones[key]});
+					el.textContent = timeStr;
+				});
+			}
+
+			updateClocks();
+			setInterval(updateClocks, 1000);
+		})();
+	</script>
+</body>
+</html>
+
+

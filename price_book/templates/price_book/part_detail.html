@@ -1,0 +1,153 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Part Detail - {{ part.partnumber }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Part Details</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="30%">Part Number:</th>
+                        <td><strong>{{ part.partnumber }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Customer:</th>
+                        <td>{{ part.customer.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Price:</th>
+                        <td>${{ part.price }}</td>
+                    </tr>
+                    <tr>
+                        <th>Margin:</th>
+                        <td>{{ part.margin }}%</td>
+                    </tr>
+                    <tr>
+                        <th>Start Date:</th>
+                        <td>{{ part.startdate|date:"M d, Y" }}</td>
+                    </tr>
+                    <tr>
+                        <th>End Date:</th>
+                        <td>{{ part.enddate|date:"M d, Y"|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>PO Number:</th>
+                        <td>{{ part.po_number|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>SO Number:</th>
+                        <td>{{ part.so_number|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td><span class="badge bg-success">{{ part.get_status_display }}</span></td>
+                    </tr>
+                    <tr>
+                        <th>Created By:</th>
+                        <td>{{ part.created_by.username }}</td>
+                    </tr>
+                    <tr>
+                        <th>Created Date:</th>
+                        <td>{{ part.created_date|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% if part.remarks %}
+                    <tr>
+                        <th>Remarks:</th>
+                        <td>{{ part.remarks }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+                
+                <div class="mt-3">
+                    <a href="{% url 'part_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price History -->
+        {% if price_history.count > 1 %}
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-history me-2"></i>Price History</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Price</th>
+                                <th>Margin %</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>PO Number</th>
+                                <th>SO Number</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for history_item in price_history %}
+                            <tr class="{% if history_item.is_current %}table-success{% endif %}">
+                                <td>
+                                    <strong>${{ history_item.price }}</strong>
+                                    {% if history_item.is_current %}
+                                    <span class="badge bg-success ms-2">CURRENT</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ history_item.margin }}%</td>
+                                <td>{{ history_item.startdate|date:"M d, Y" }}</td>
+                                <td>{{ history_item.enddate|date:"M d, Y"|default:"Ongoing" }}</td>
+                                <td>{{ history_item.po_number|default:"-" }}</td>
+                                <td>{{ history_item.so_number|default:"-" }}</td>
+                                <td>
+                                    {% if history_item.is_current %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Expired</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-history me-2"></i>Activity Log</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if logs %}
+                <div class="list-group list-group-flush">
+                    {% for log in logs %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ log.action }}</h6>
+                            <small>{{ log.created_date|date:"M d, H:i" }}</small>
+                        </div>
+                        <p class="mb-1"><small>By: {{ log.user.username }}</small></p>
+                        {% if log.comments %}
+                        <small class="text-muted">{{ log.comments }}</small>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-muted py-3">No activity logs</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

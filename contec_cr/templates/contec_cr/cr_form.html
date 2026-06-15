@@ -1,0 +1,456 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="mb-0">
+                    <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus{% endif %} me-2"></i>
+                    {% if form.instance.pk %}Edit{% else %}New{% endif %} Change Request
+                </h1>
+                <a href="{% url 'cr_list' %}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-11">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Change Request Details</h5>
+                </div>
+                <div class="card-body px-4">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <strong>Form Error:</strong>
+                            <ul class="mb-0 mt-2">
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="mb-3 text-primary">Basic Information</h6>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.effecting_app.id_for_label }}" class="form-label required">
+                                    {{ form.effecting_app.label }}
+                                </label>
+                                {{ form.effecting_app }}
+                                {% if form.effecting_app.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.effecting_app.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                {% if form.effecting_app.help_text %}
+                                    <div class="form-text">{{ form.effecting_app.help_text }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.cr_raised_by.id_for_label }}" class="form-label required">
+                                    {{ form.cr_raised_by.label }}
+                                </label>
+                                {{ form.cr_raised_by }}
+                                {% if form.cr_raised_by.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.cr_raised_by.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.cr_raised_on.id_for_label }}" class="form-label">
+                                    {{ form.cr_raised_on.label }}
+                                </label>
+                                {{ form.cr_raised_on }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.priority.id_for_label }}" class="form-label required">
+                                    {{ form.priority.label }}
+                                </label>
+                                {{ form.priority }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.department.id_for_label }}" class="form-label">
+                                    {{ form.department.label }}
+                                </label>
+                                {{ form.department }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.job_name.id_for_label }}" class="form-label">
+                                    {{ form.job_name.label }}
+                                </label>
+                                {{ form.job_name }}
+                            </div>
+                        </div>
+
+                        <!-- Change Details -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="mb-3 text-primary">Change Details</h6>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label required">
+                                    {{ form.description.label }}
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.description.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.details_pre_cr.id_for_label }}" class="form-label">
+                                    {{ form.details_pre_cr.label }}
+                                </label>
+                                {{ form.details_pre_cr }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.details_post_cr.id_for_label }}" class="form-label">
+                                    {{ form.details_post_cr.label }}
+                                </label>
+                                {{ form.details_post_cr }}
+                            </div>
+                        </div>
+
+                        <!-- Planning & Resources -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="mb-3 text-primary">Planning & Resources</h6>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.process_manager.id_for_label }}" class="form-label required">
+                                    {{ form.process_manager.label }}
+                                </label>
+                                {{ form.process_manager }}
+                                {% if form.process_manager.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.process_manager.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.resource_name.id_for_label }}" class="form-label required">
+                                    {{ form.resource_name.label }}
+                                </label>
+                                {{ form.resource_name }}
+                                {% if form.resource_name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.resource_name.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.back_up.id_for_label }}" class="form-label required">
+                                    {{ form.back_up.label }}
+                                </label>
+                                {{ form.back_up }}
+                                {% if form.back_up.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.back_up.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                {% if form.back_up.help_text %}
+                                    <div class="form-text">{{ form.back_up.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Timeline -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="mb-3 text-primary">Timeline</h6>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="{{ form.start_date.id_for_label }}" class="form-label">
+                                    {{ form.start_date.label }}
+                                </label>
+                                {{ form.start_date }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="{{ form.end_date.id_for_label }}" class="form-label">
+                                    {{ form.end_date.label }}
+                                </label>
+                                {{ form.end_date }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="{{ form.tested_on.id_for_label }}" class="form-label">
+                                    {{ form.tested_on.label }}
+                                </label>
+                                {{ form.tested_on }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="{{ form.validated_on.id_for_label }}" class="form-label">
+                                    {{ form.validated_on.label }}
+                                </label>
+                                {{ form.validated_on }}
+                            </div>
+                        </div>
+
+                        <!-- Risk & Impact -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="mb-3 text-primary">Risk & Impact Assessment</h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.identified_risks.id_for_label }}" class="form-label">
+                                    {{ form.identified_risks.label }}
+                                </label>
+                                {{ form.identified_risks }}
+                                {% if form.identified_risks.help_text %}
+                                    <div class="form-text">{{ form.identified_risks.help_text }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.change_benefits.id_for_label }}" class="form-label">
+                                    {{ form.change_benefits.label }}
+                                </label>
+                                {{ form.change_benefits }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.impacting_customer.id_for_label }}" class="form-label required">
+                                    {{ form.impacting_customer.label }}
+                                </label>
+                                {{ form.impacting_customer }}
+                                {% if form.impacting_customer.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.impacting_customer.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                {% if form.impacting_customer.help_text %}
+                                    <div class="form-text">{{ form.impacting_customer.help_text }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Status & Remarks -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="mb-3 text-primary">Status & Remarks</h6>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.status.id_for_label }}" class="form-label">
+                                    {{ form.status.label }}
+                                </label>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                    <div class="text-danger small mt-1">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>{{ form.status.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.attachment.id_for_label }}" class="form-label">
+                                    {{ form.attachment.label }}
+                                </label>
+                                {{ form.attachment }}
+                                {% if form.attachment.help_text %}
+                                    <div class="form-text">{{ form.attachment.help_text }}</div>
+                                {% endif %}
+                                {% if form.attachment.errors %}
+                                    <div class="text-danger small">{{ form.attachment.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="{{ form.remarks.id_for_label }}" class="form-label">
+                                    {{ form.remarks.label }}
+                                </label>
+                                {{ form.remarks }}
+                            </div>
+                        </div>
+
+                        <!-- Form Buttons -->
+                        <div class="row">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-light" onclick="window.history.back();">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Submit Change Request
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Form specific styles */
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.75rem;
+        font-size: 0.925rem;
+        padding: 0.25rem 0.75rem;
+        background: linear-gradient(to right, rgba(102, 126, 234, 0.05), transparent);
+        border-radius: 4px;
+        display: inline-block;
+        transition: all 0.3s ease;
+        text-transform: capitalize;
+        letter-spacing: 0.3px;
+        border: 2px solid #3498db;
+        box-shadow: 0 2px 4px rgba(52, 152, 219, 0.1);
+    }
+
+    .form-label:hover {
+        background: linear-gradient(to right, rgba(52, 152, 219, 0.1), transparent);
+        transform: translateX(2px);
+        border-color: #2980b9;
+        box-shadow: 0 3px 6px rgba(52, 152, 219, 0.15);
+    }
+
+    /* Required field labels */
+    .form-label.required::after {
+        content: '*';
+        color: #e74c3c;
+        margin-left: 4px;
+        font-weight: bold;
+    }
+
+    /* Section header labels with icon */
+    h6.mb-3.text-primary {
+        position: relative;
+        padding-left: 1.5rem;
+    }
+
+    h6.mb-3.text-primary::before {
+        content: '›';
+        position: absolute;
+        left: 0;
+        color: #667eea;
+        font-size: 1.5rem;
+        line-height: 1;
+        top: 0;
+    }
+
+    /* Help text enhancement */
+    .form-text {
+        color: #6c757d;
+        font-size: 0.8rem;
+        margin-top: 0.4rem;
+        padding-left: 0.75rem;
+        border-left: 2px dotted #cbd5e1;
+        font-style: italic;
+    }
+    
+    .form-control {
+        padding: 0.6rem 1rem;
+        border: 2px solid #3498db;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+        box-shadow: 0 2px 4px rgba(52, 152, 219, 0.1);
+    }
+    
+    /* Section spacing and styling */
+    .row > div[class^="col"] {
+        margin-bottom: 1rem;
+    }
+    
+    .mb-4 {
+        margin-bottom: 2rem !important;
+    }
+    
+    /* Make textareas more compact */
+    textarea.form-control {
+        min-height: 80px;
+    }
+    
+    /* Reduce spacing between form groups */
+    .mb-3 {
+        margin-bottom: 1rem !important;
+    }
+    
+    .form-control:focus {
+        border-color: #2980b9;
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        outline: none;
+    }
+    
+    textarea.form-control {
+        min-height: 100px;
+    }
+    
+    .form-text {
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .card {
+        border: none;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.08);
+        border-radius: 0.75rem;
+        margin-bottom: 2rem;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1rem 1.5rem;
+        border-radius: 0.75rem 0.75rem 0 0 !important;
+    }
+    
+    .container-fluid {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    
+    .text-primary {
+        color: #667eea !important;
+    }
+    
+    /* Improved date input styling */
+    input[type="date"] {
+        min-height: 42px;
+    }
+    
+    /* Section headers */
+    h6 {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    /* Error state */
+    .invalid-feedback {
+        font-size: 0.875rem;
+        color: #dc3545;
+        margin-top: 0.25rem;
+    }
+    
+    /* Button styling */
+    .btn {
+        padding: 0.6rem 1.2rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+    }
+    
+    .gap-2 {
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}

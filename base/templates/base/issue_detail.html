@@ -1,0 +1,466 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Issue #{{ issue.id }} - {{ issue.customer }} - Issue Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-6 fw-bold" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+    <i class="fas fa-bug me-3"></i>Issue #{{ issue.id }}
+    </h1>
+    <div>
+        <a href="{% url 'issue-update' issue.pk %}" class="btn btn-warning me-2">
+            <i class="fas fa-edit me-2"></i>Edit
+        </a>
+        <button type="button" class="btn btn-info me-2" onclick="openEmailModal({{ issue.id }})">
+            <i class="fas fa-envelope me-2"></i>Send Email
+        </button>
+        <a href="{% url 'issue-delete' issue.pk %}" class="btn btn-danger me-2"
+           onclick="return confirmDelete('Are you sure you want to delete this issue?')">
+            <i class="fas fa-trash me-2"></i>Delete
+        </a>
+        <a href="{% url 'issues' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Issues
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Status and Priority Card -->
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Issue Overview
+                        </h5>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <span class="status-badge status-{{ issue.status|lower }} fs-6">
+                            {{ issue.status }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong><i class="fas fa-building me-2"></i>Customer:</strong> {{ issue.customer }}</p>
+                        <p class="mb-2"><strong><i class="fas fa-map-marker-alt me-2"></i>Location:</strong> {{ issue.location|default:"Not specified" }}</p>
+                        <p class="mb-2"><strong><i class="fas fa-file-invoice me-2"></i>Invoice Type:</strong> {{ issue.inv_type }}</p>
+                        <p class="mb-2"><strong><i class="fas fa-exclamation-triangle me-2"></i>Issue Category:</strong> 
+                            <span class="badge bg-info">{{ issue.issue_cat.name }}</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong><i class="fas fa-calendar me-2"></i>Identified On:</strong> {{ issue.identified_on|date:"m/d/Y H:i" }}</p>
+                        <p class="mb-2"><strong><i class="fas fa-user me-2"></i>Identified By:</strong> {{ issue.identified_by }}</p>
+                        <p class="mb-2"><strong><i class="fas fa-clock me-2"></i>Due Date:</strong> 
+                            <span class="{% if issue.due_date < now and issue.status == 'Open' %}text-danger fw-bold{% else %}text-dark{% endif %}">
+                                {{ issue.due_date|date:"m/d/Y H:i" }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-align-left me-2"></i>Description
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ issue.description|linebreaks }}</p>
+            </div>
+        </div>
+
+        <!-- Root Cause Analysis -->
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-search me-2"></i>Root Cause Analysis
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <p class="mb-1"><strong>Root Cause:</strong></p>
+                        <p class="mb-3">{{ issue.root_cause }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Root Cause Owner:</strong></p>
+                        <p class="mb-0">{{ issue.root_cause_owner }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Action Owner:</strong></p>
+                        <p class="mb-0">{{ issue.action_owner|default:"Not assigned" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Impact -->
+        {% if issue.revenue_impact or issue.impact_category %}
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-dollar-sign me-2"></i>Financial Impact
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Revenue Impact:</strong></p>
+                        <p class="mb-3">
+                            {% if issue.revenue_impact %}
+                                <span class="fs-5 fw-bold text-success">${{ issue.revenue_impact|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="text-muted">$0.00</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Impact Category:</strong></p>
+                        <p class="mb-3">
+                            {% if issue.impact_category %}
+                                <span class="badge bg-warning">{{ issue.impact_category }}</span>
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333;">
+                <h6 class="mb-0">
+                    <i class="fas fa-tools me-2"></i>Actions Taken
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <p class="mb-1"><strong>Containment Action:</strong></p>
+                        <p class="mb-3">{{ issue.containment_action|linebreaks }}</p>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <p class="mb-1"><strong>Corrective Action:</strong></p>
+                        <p class="mb-3">{{ issue.corrective_action|linebreaks }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Rebilled/Credited:</strong></p>
+                        <p class="mb-0">
+                            {% if issue.rebilled_credited == 'Yes' %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Approved By:</strong></p>
+                        <p class="mb-0">
+                            {% if issue.approved %}
+                                <span class="badge bg-primary">{{ issue.approved }}</span>
+                            {% else %}
+                                <span class="text-muted">Not approved</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Impact -->
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-users me-2"></i>Customer Impact
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Customer Received:</strong></p>
+                        <p class="mb-3">
+                            {% if issue.customer_received == 'Yes' %}
+                                <span class="badge bg-success">Yes</span>
+                            {% else %}
+                                <span class="badge bg-warning">No</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Impacted Customer:</strong></p>
+                        <p class="mb-3">
+                            {% if issue.impacted_customer %}
+                                {{ issue.impacted_customer }}
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Remarks -->
+        {% if issue.remarks %}
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-sticky-note me-2"></i>Additional Remarks
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ issue.remarks|linebreaks }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Attachment -->
+        {% if issue.attachment %}
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-paperclip me-2"></i>Attachment
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="file-icon me-3">
+                            {% if issue.attachment.name|slice:"-4:" == ".pdf" %}
+                                <i class="fas fa-file-pdf text-danger fs-2"></i>
+                            {% elif issue.attachment.name|slice:"-5:" == ".docx" or issue.attachment.name|slice:"-4:" == ".doc" %}
+                                <i class="fas fa-file-word text-primary fs-2"></i>
+                            {% elif issue.attachment.name|slice:"-5:" == ".xlsx" or issue.attachment.name|slice:"-4:" == ".xls" %}
+                                <i class="fas fa-file-excel text-success fs-2"></i>
+                            {% elif issue.attachment.name|slice:"-4:" == ".jpg" or issue.attachment.name|slice:"-5:" == ".jpeg" or issue.attachment.name|slice:"-4:" == ".png" or issue.attachment.name|slice:"-4:" == ".gif" %}
+                                <i class="fas fa-file-image text-info fs-2"></i>
+                            {% else %}
+                                <i class="fas fa-file text-secondary fs-2"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h6 class="mb-1">{{ issue.attachment.name|slice:"20:" }}</h6>
+                            <small class="text-muted">{{ issue.attachment.size|filesizeformat }}</small>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{{ issue.attachment.url }}" target="_blank" class="btn btn-outline-primary btn-sm me-2">
+                            <i class="fas fa-eye me-1"></i>View
+                        </a>
+                        <a href="{{ issue.attachment.url }}" download class="btn btn-primary btn-sm">
+                            <i class="fas fa-download me-1"></i>Download
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+
+
+        <!-- Issue Timeline -->
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Issue Timeline
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-info"></div>
+                        <div class="timeline-content">
+                            <h6 class="timeline-title">Issue Identified</h6>
+                            <p class="timeline-text">{{ issue.identified_on|date:"M d, Y H:i" }}</p>
+                            <small class="text-muted">by {{ issue.identified_by }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-primary"></div>
+                        <div class="timeline-content">
+                            <h6 class="timeline-title">Issue Registered</h6>
+                            <p class="timeline-text">{{ issue.created_at|date:"M d, Y H:i" }}</p>
+                            <small class="text-muted">by {{ issue.created_by.username }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-marker {% if issue.due_date < now and issue.status == 'Open' %}bg-danger{% else %}bg-warning{% endif %}"></div>
+                        <div class="timeline-content">
+                            <h6 class="timeline-title">
+                                {% if issue.due_date < now and issue.status == 'Open' %}
+                                    Overdue
+                                {% else %}
+                                    Due Date
+                                {% endif %}
+                            </h6>
+                            <p class="timeline-text">{{ issue.due_date|date:"M d, Y H:i" }}</p>
+                            <small class="text-muted">
+                                {% if issue.due_date < now and issue.status == 'Open' %}
+                                    <span class="text-danger">Overdue</span>
+                                {% else %}
+                                    <span class="text-success">On track</span>
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    {% if issue.closed_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker bg-success"></div>
+                        <div class="timeline-content">
+                            <h6 class="timeline-title">Closed</h6>
+                            <p class="timeline-text">{{ issue.closed_at|date:"M d, Y H:i" }}</p>
+                            <small class="text-muted">Issue resolved</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue Statistics -->
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>Issue Statistics
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="stat-number text-primary">{{ days_since_identified }}</div>
+                        <div class="stat-label">Days Since Identified</div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stat-number {% if days_until_due < 0 %}text-danger{% else %}text-warning{% endif %}">{{ days_until_due }}</div>
+                        <div class="stat-label">Days Until Due</div>
+                    </div>
+                </div>
+                
+                {% if issue.revenue_impact %}
+                <div class="text-center">
+                    <div class="stat-number text-success">${{ issue.revenue_impact|floatformat:2 }}</div>
+                    <div class="stat-label">Revenue Impact</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Modal -->
+<div class="modal fade" id="emailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-envelope me-2"></i>Send Email
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="emailModalBody">
+                <!-- Email form will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px #dee2e6;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 3px solid #1e62b9;
+}
+
+.timeline-title {
+    margin: 0 0 5px 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.timeline-text {
+    margin: 0 0 5px 0;
+    font-size: 0.85rem;
+    color: #0c2e4e;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: -31px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openEmailModal(issueId) {
+    const modal = new bootstrap.Modal(document.getElementById('emailModal'));
+    const modalBody = document.getElementById('emailModalBody');
+    modalBody.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading email form...</p>
+        </div>`;
+    modal.show();
+
+    fetch('{% url "issue-email" 0 %}'.replace('0', issueId))
+        .then(resp => resp.text())
+        .then(html => { modalBody.innerHTML = html; })
+        .catch(() => {
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error loading email form. Please try again.
+                </div>`;
+        });
+}
+</script>
+{% endblock %}

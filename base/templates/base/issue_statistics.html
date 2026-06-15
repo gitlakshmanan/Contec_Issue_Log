@@ -1,0 +1,314 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Issue Statistics - Issue Management System{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-6 fw-bold" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        <i class="fas fa-chart-bar me-3"></i>Issue Statistics
+    </h1>
+    <div class="d-flex gap-3 align-items-center">
+        <form method="get" class="d-flex align-items-center gap-2">
+            <label for="year" class="form-label mb-0 fw-bold">Year:</label>
+            <select name="year" id="year" class="form-select" onchange="this.form.submit()" style="width: auto;">
+                {% for year in available_years %}
+                    <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
+                        {{ year }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+        <a href="{% url 'issues' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Issues
+        </a>
+    </div>
+</div>
+
+<!-- Year Info -->
+<div class="alert alert-info mb-4">
+    <i class="fas fa-calendar-alt me-2"></i>
+    <strong>Year {{ selected_year }}</strong> 
+    ({{ year_start|date:"M d, Y" }} to {{ year_end|date:"M d, Y" }})
+</div>
+
+<!-- Overview Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+            <div class="stat-number">{{ total_issues }}</div>
+            <div class="stat-label">Total Issues</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+            <div class="stat-number">{{ open_issues }}</div>
+            <div class="stat-label">Open Issues</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+            <div class="stat-number">{{ closed_issues }}</div>
+            <div class="stat-label">Closed Issues</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333;">
+            <div class="stat-number">{{ dismissed_issues }}</div>
+            <div class="stat-label">Dismissed Issues</div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue Statistics -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-dollar-sign me-2"></i>Revenue Impact Summary
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="stat-number text-success">${{ revenue_stats.total_revenue|default:0|floatformat:2 }}</div>
+                        <div class="stat-label">Total Revenue Impact</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-number text-info">${{ revenue_stats.avg_revenue|default:0|floatformat:2 }}</div>
+                        <div class="stat-label">Average Impact</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-percentage me-2"></i>Resolution Rate
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    {% if total_issues > 0 %}
+                        {% widthratio closed_issues total_issues 100 as resolution_rate %}
+                        <div class="stat-number text-success">{{ resolution_rate }}%</div>
+                    {% else %}
+                        <div class="stat-number text-muted">0%</div>
+                    {% endif %}
+                    <div class="stat-label">Issues Resolved</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Customer Statistics -->
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-building me-2"></i>Issues by Customer
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if customer_stats %}
+                    {% for stat in customer_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="fw-bold">{{ stat.customer__name }}</span>
+                            {% if stat.total_revenue %}
+                                <small class="text-muted">(${{ stat.total_revenue|floatformat:2 }})</small>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="progress me-2" style="width: 100px; height: 8px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {% widthratio stat.count total_issues 100 %}%"></div>
+                            </div>
+                            <span class="badge bg-primary">{{ stat.count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No customer data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Issue Category Statistics -->
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Issues by Category
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if category_stats %}
+                    {% for stat in category_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold">{{ stat.issue_cat__name }}</span>
+                        <div class="d-flex align-items-center">
+                            <div class="progress me-2" style="width: 100px; height: 8px;">
+                                <div class="progress-bar bg-info" role="progressbar" 
+                                     style="width: {% widthratio stat.count total_issues 100 %}%"></div>
+                            </div>
+                            <span class="badge bg-info">{{ stat.count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No category data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department & Location Statistics -->
+<div class="row">
+    <!-- Department -->
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #333;">
+                <h6 class="mb-0">
+                    <i class="fas fa-users-cog me-2"></i>Issues by Department
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if department_stats %}
+                    {% for stat in department_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="fw-bold">{{ stat.department }}</span>
+                            {% if stat.total_revenue %}
+                                <small class="text-muted">(${{ stat.total_revenue|floatformat:2 }})</small>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="progress me-2" style="width: 100px; height: 8px;">
+                                <div class="progress-bar bg-warning" role="progressbar" 
+                                     style="width: {% widthratio stat.count total_issues 100 %}%"></div>
+                            </div>
+                            <span class="badge bg-warning text-dark">{{ stat.count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No department data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Location -->
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header" style="background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); color: #333;">
+                <h6 class="mb-0">
+                    <i class="fas fa-map-marker-alt me-2"></i>Issues by Location
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if location_stats %}
+                    {% for stat in location_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="fw-bold">{{ stat.location }}</span>
+                            {% if stat.total_revenue %}
+                                <small class="text-muted">(${{ stat.total_revenue|floatformat:2 }})</small>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="progress me-2" style="width: 100px; height: 8px;">
+                                <div class="progress-bar bg-secondary" role="progressbar" 
+                                     style="width: {% widthratio stat.count total_issues 100 %}%"></div>
+                            </div>
+                            <span class="badge bg-secondary">{{ stat.count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted mb-0">No location data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Trends -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Monthly Trends ({{ selected_year }})
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if monthly_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Total Issues</th>
+                                    <th>Open</th>
+                                    <th>Closed</th>
+                                    <th>Resolution Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for month in monthly_stats %}
+                                <tr>
+                                    <td><strong>{{ month.month_name }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ month.count }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">{{ month.open }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ month.closed }}</span>
+                                    </td>
+                                    <td>
+                                        {% if month.count > 0 %}
+                                            {% widthratio month.closed month.count 100 as month_resolution %}
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                     style="width: {{ month_resolution }}%">
+                                                    {{ month_resolution }}%
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">0%</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No monthly data available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-refresh statistics every 5 minutes
+    setInterval(function() {
+        location.reload();
+    }, 300000);
+});
+</script>
+{% endblock %}

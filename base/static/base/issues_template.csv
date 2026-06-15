@@ -1,0 +1,2 @@
+ID,Department,Customer,Invoice Type,Issue Category,Description,Identified On,Identified By,Revenue Impact,Impact Category,Root Cause,Root Cause Owner,Customer Received,Impacted Customers,Containment Action,Corrective Action,Rebilled/Credited,Rebill/Credit Proof,Action Owner,Due Date,Status,Approved By,Remarks,Attachment,Created By,Created At,Updated At
+,Finance,Acme Corp,Standard,Billing,Example issue description,2025-10-01,Alice,1000,,Incorrect calculation,Bob,No,,Containment action,Corrective action,No,,Bob,2025-10-15,Open,,,,,

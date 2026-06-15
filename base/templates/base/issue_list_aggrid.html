@@ -1,0 +1,516 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Issues - Issue Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #3d47a0 0%, #2d5f6d 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+    
+    .page-header h2 {
+        margin: 0;
+        font-weight: 800;
+        font-size: 2rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e2e8f0;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 8px;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+    
+    .search-container {
+        background: white;
+        padding: 12px 15px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+    
+    .search-container .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+    }
+    
+    .search-container .form-control,
+    .search-container .form-select {
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        padding: 10px 15px;
+    }
+    
+    .filter-toggle-btn {
+        border-radius: 10px;
+        padding: 10px 16px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-toggle-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .advanced-filters {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .advanced-filters .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+    }
+    
+    .advanced-filters .form-control,
+    .advanced-filters .form-select {
+        width: 100%;
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        padding: 8px 12px;
+    }
+    
+    .table {
+        border-radius: 12px;
+    }
+    
+    .table thead th {
+        background: #2c3e50;
+        color: white;
+        border: none;
+        border-right: 1px solid #34495e;
+        font-weight: 700;
+        padding: 12px;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.9rem;
+    }
+    
+    .table thead th:last-child {
+        border-right: none;
+    }
+
+    /* Clickable sortable headers */
+    .sort-th {
+        color: inherit;
+        text-decoration: none;
+        font-weight: 700;
+        text-transform: inherit;
+        letter-spacing: inherit;
+        font-size: inherit;
+        background: transparent;
+        border: 0;
+    }
+
+    .sort-th:hover {
+        opacity: 0.9;
+        text-decoration: underline;
+    }
+    
+    .table tbody td {
+        border: none;
+        padding: 12px;
+        vertical-align: middle;
+    }
+    
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+    
+    .table tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.08);
+    }
+
+    /* Constrain table height so only the table body scrolls, not the entire page */
+    .issues-table-container {
+        max-height: 65vh;
+        overflow-y: auto;
+    }
+    
+    /* Left-align text columns */
+    .table th:nth-child(n+1):nth-child(-n+7),
+    .table td:nth-child(n+1):nth-child(-n+7) {
+        text-align: left;
+    }
+    
+    /* Center numeric/status columns */
+    .table th:nth-child(n+8),
+    .table td:nth-child(n+8) {
+        text-align: center;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    
+    .status-open {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .status-closed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .status-dismissed {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2><i class="fas fa-bug me-3"></i>All Issues</h2>
+        <p class="mb-0 mt-2" style="opacity: 0.95;">Professional issue tracking</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_issues }}</div>
+        <div class="stat-label">Total Issues</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ open_issues }}</div>
+        <div class="stat-label">Open Issues</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ closed_issues }}</div>
+        <div class="stat-label">Closed Issues</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">${{ total_revenue_impact|default:0|floatformat:0 }}</div>
+        <div class="stat-label">Revenue Impact</div>
+    </div>
+</div>
+
+<!-- Search and Filter Form -->
+<div class="search-container">
+    <form method="get" id="issueSearchForm">
+        <!-- Main Search Row -->
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ request.GET.search }}" placeholder="Search by ID, customer, category, description, root cause, action owner...">
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex flex-wrap gap-2 align-items-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Search
+                    </button>
+                    <a href="{% url 'export-issues' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-success" title="Export all issues (respects current filters)">
+                        <i class="fas fa-download me-2"></i>Export Issues
+                    </a>
+                    <button type="button" class="btn btn-outline-primary filter-toggle-btn" id="filterToggle" data-bs-toggle="collapse" data-bs-target="#advancedFilters" aria-expanded="false" aria-controls="advancedFilters">
+                        <i class="fas fa-sliders-h me-2"></i>Filters
+                    </button>
+                    <a href="{% url 'issues' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Clear
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Advanced Filters (Collapsible) -->
+        <div class="advanced-filters collapse" id="advancedFilters">
+            <div class="row g-3 mt-1">
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                    <label for="id_customer" class="form-label">Customer</label>
+                    {{ search_form.customer }}
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                    <label for="id_inv_type" class="form-label">Invoice Type</label>
+                    {{ search_form.inv_type }}
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                    <label for="id_issue_cat" class="form-label">Issue Category</label>
+                    {{ search_form.issue_cat }}
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                    <label for="id_status" class="form-label">Status</label>
+                    {{ search_form.status }}
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                    <label for="id_department" class="form-label">Department</label>
+                    <select name="department" id="id_department" class="form-control form-select">
+                        <option value="">All Departments</option>
+                        {% for d in departments %}
+                            {% if d %}
+                                <option value="{{ d }}" {% if request.GET.department == d %}selected{% endif %}>{{ d }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                    <label for="id_sort_by" class="form-label">Sort By</label>
+                    {{ search_form.sort_by }}
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Issues Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive issues-table-container">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th><button type="button" class="sort-th js-sort" data-sort="id" data-label="ID">ID</button></th>
+                        <th><button type="button" class="sort-th js-sort" data-sort="location" data-label="Location">Location</button></th>
+                        <th><button type="button" class="sort-th js-sort" data-sort="department" data-label="Department">Department</button></th>
+                        <th><button type="button" class="sort-th js-sort" data-sort="customer" data-label="Customer">Customer</button></th>
+                        <th><button type="button" class="sort-th js-sort" data-sort="inv_type" data-label="Inv Type">Inv Type</button></th>
+                        <th><button type="button" class="sort-th js-sort" data-sort="issue_cat" data-label="Issue Cat">Issue Cat</button></th>
+                        <th>Description</th>
+                        <th><button type="button" class="sort-th js-sort" data-sort="identified_on" data-label="Identified On">Identified On</button></th>
+                        <th><button type="button" class="sort-th js-sort" data-sort="revenue_impact" data-label="Revenue Impact">Revenue Impact</button></th>
+                        <th><button type="button" class="sort-th js-sort" data-sort="status" data-label="Status">Status</button></th>
+                        <th><button type="button" class="sort-th js-sort" data-sort="due_date" data-label="Due Date">Due Date</button></th>
+                        <th>Attachment</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in issues %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-primary">#{{ issue.id }}</span>
+                        </td>
+                        <td>{{ issue.location|default:'-' }}</td>
+                        <td>{{ issue.department|default:'-' }}</td>
+                        <td>
+                            <span class="fw-bold">{{ issue.customer }}</span>
+                        </td>
+                        <td>{{ issue.inv_type }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ issue.issue_cat_name|default:issue.issue_cat.name }}</span>
+                        </td>
+                        <td>
+                            <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                {{ issue.description|truncatechars:50 }}
+                            </div>
+                        </td>
+                        <td>{{ issue.identified_on|date:"m/d/Y" }}</td>
+                        <td>
+                            {% if issue.revenue_impact %}
+                                <span class="text-success fw-bold">${{ issue.revenue_impact|floatformat:2 }}</span>
+                            {% else %}
+                                <span class="text-muted">$0.00</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ issue.status|lower }}">
+                                {{ issue.status }}
+                            </span>
+                        </td>
+                        <td>{{ issue.due_date|date:"m/d/Y" }}</td>
+                        <td class="text-center">
+                            {% if issue.attachment %}
+                                <a href="{{ issue.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary" title="View/Download">
+                                    <i class="fas fa-file"></i>
+                                </a>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'issue-detail' issue.pk %}" class="btn btn-sm btn-outline-primary" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'issue-update' issue.pk %}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'issue-delete' issue.pk %}" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Delete this issue?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="13" class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                <h5>No issues found</h5>
+                                <p>Try adjusting your search criteria or create a new issue.</p>
+                                <a href="{% url 'issue-create' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Create First Issue
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+    <small class="text-muted">
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+        &nbsp;•&nbsp;
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </small>
+</div>
+<nav aria-label="Issues pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page=1">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Keep only the logic that auto-expands filters when parameters are present
+document.addEventListener('DOMContentLoaded', function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasSearchParams = Array.from(urlParams.keys()).some(key =>
+        ['search', 'customer', 'inv_type', 'issue_cat', 'status', 'department', 'sort_by'].includes(key)
+    );
+
+    if (hasSearchParams) {
+        const filterElement = document.getElementById('advancedFilters');
+        if (filterElement) {
+            filterElement.classList.add('show');
+        }
+    }
+
+    // Click-to-sort headers (server-side sorting via existing GET form)
+    const form = document.getElementById('issueSearchForm');
+    const sortSelect = document.getElementById('id_sort_by');
+    let currentSort = (urlParams.get('sort_by') || (sortSelect && sortSelect.value) || 'id').trim();
+
+    function updateSortIndicators() {
+        document.querySelectorAll('.js-sort').forEach(function (btn) {
+            const field = (btn.getAttribute('data-sort') || '').trim();
+            const baseLabel = btn.getAttribute('data-label') || btn.textContent.trim();
+            let arrow = '';
+            if (currentSort === field) {
+                arrow = ' ▲';
+            } else if (currentSort === ('-' + field)) {
+                arrow = ' ▼';
+            }
+            btn.textContent = baseLabel + arrow;
+        });
+    }
+
+    updateSortIndicators();
+
+    document.querySelectorAll('.js-sort').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (!form || !sortSelect) return;
+
+            const field = (btn.getAttribute('data-sort') || '').trim();
+            if (!field) return;
+
+            let nextSort = field;
+            if (currentSort === field) nextSort = '-' + field;
+            else if (currentSort === ('-' + field)) nextSort = field;
+
+            currentSort = nextSort;
+            updateSortIndicators();
+
+            // Ensure option exists; if not, add it (keeps UI consistent)
+            if (!Array.from(sortSelect.options).some(o => o.value === nextSort)) {
+                const opt = document.createElement('option');
+                opt.value = nextSort;
+                opt.text = nextSort;
+                sortSelect.appendChild(opt);
+            }
+
+            sortSelect.value = nextSort;
+            form.submit();
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Reopen Issue #{{ issue.id }} - Issue Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-undo me-2"></i>Reopen Issue #{{ issue.id }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Are you sure you want to reopen this issue?
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Issue Details</label>
+                        <div class="alert alert-light border">
+                            <strong>Customer:</strong> {{ issue.customer }}<br>
+                            <strong>Category:</strong> {{ issue.issue_cat.name }}<br>
+                            <strong>Description:</strong> {{ issue.description|truncatechars:100 }}<br>
+                            <strong>Status:</strong> <span class="badge bg-secondary">{{ issue.status }}</span><br>
+                            <strong>Closed Date:</strong> {{ issue.closed_at|date:"M d, Y H:i"|default:"N/A" }}
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'issues' %}{% endif %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-undo me-2"></i>Reopen Issue
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
